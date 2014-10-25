@@ -23,7 +23,7 @@ namespace Assets.Scripts
 
         private bool VerifyIsGrounded()
         {
-            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .16f), -Vector2.up, .2f);
+            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .16f);
             return hit.collider != null;
         }
     }
