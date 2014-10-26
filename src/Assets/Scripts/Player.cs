@@ -13,7 +13,10 @@ namespace Assets.Scripts
         {
             get { return _ropeSegments.Any(); }
         }
-        private List<GameObject> _ropeSegments = new List<GameObject>(); 
+        private readonly List<GameObject> _ropeSegments = new List<GameObject>();
+
+        private Vector3 _prevPosition;
+        private GameObject _prevHighest;
 
         void FixedUpdate()
         {
@@ -25,6 +28,19 @@ namespace Assets.Scripts
 
                 // Climb rope
                 rigidbody2D.velocity = new Vector2(0, Input.GetAxisRaw("Vertical") * Speed);
+
+                // Swing on rope
+                var highest = _ropeSegments.OrderBy(x => x.transform.position.y).FirstOrDefault();
+                if (highest != null)
+                {
+                    transform.SetParent(highest.transform);
+                    highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 25, 0));
+
+                    if (_prevHighest == highest)
+                        transform.Translate(highest.transform.position - _prevPosition);
+                    _prevHighest = highest;
+                    _prevPosition = highest.transform.position;
+                }
             }
             else
             {
