@@ -35,9 +35,10 @@ namespace Assets.Scripts
                 {
                     transform.SetParent(highest.transform);
                     highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 25, 0));
+                    transform.rotation = highest.transform.rotation;
 
                     if (_prevHighest == highest)
-                        transform.Translate(highest.transform.position - _prevPosition);
+                        transform.position += highest.transform.position - _prevPosition;
                     _prevHighest = highest;
                     _prevPosition = highest.transform.position;
                 }
@@ -53,7 +54,7 @@ namespace Assets.Scripts
 
         private void OnTriggerExit2D(Collider2D col)
         {
-            if (col.tag == "Rope") _ropeSegments.Remove(col.gameObject);
+            if (col.tag == "Rope" && _ropeSegments.Count > 1) _ropeSegments.Remove(col.gameObject);
         }
 
         private void OnTriggerStay2D(Collider2D col)
@@ -65,12 +66,18 @@ namespace Assets.Scripts
             }
         }
 
+        private void OnCollisionEnter2D(Collision2D col)
+        {
+            if(!_isOnRope) transform.rotation = new Quaternion(0, 0, 0, 0);
+        }
+
         private void UpdateJumping()
         {
             if ((IsGrounded() || _isOnRope) && Input.GetKeyDown(KeyCode.Space))
             {
                 rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
                 rigidbody2D.gravityScale = 1;
+                transform.SetParent(null);
                 _ropeSegments.Clear();
             }
         }
