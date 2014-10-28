@@ -30,7 +30,7 @@ namespace Assets.Scripts
                 rigidbody2D.velocity = new Vector2(0, Input.GetAxisRaw("Vertical") * Speed);
 
                 // Swing on rope
-                var highest = _ropeSegments.OrderBy(x => x.transform.position.y).FirstOrDefault();
+                var highest = _ropeSegments.OrderByDescending(x => x.transform.position.y).FirstOrDefault();
                 if (highest != null)
                 {
                     transform.SetParent(highest.transform);
