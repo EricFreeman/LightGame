@@ -84,7 +84,7 @@ namespace Assets.Scripts
 
         private bool IsGrounded()
         {
-            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .16f);
+            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f);
             return hit.collider != null;
         }
     }
