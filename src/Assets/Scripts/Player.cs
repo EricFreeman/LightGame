@@ -68,6 +68,7 @@ namespace Assets.Scripts
         private void OnCollisionEnter2D(Collision2D col)
         {
             if(!_isOnRope) transform.rotation = col.collider.transform.rotation;
+            if(col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
         }
 
         private void UpdateJumping()
