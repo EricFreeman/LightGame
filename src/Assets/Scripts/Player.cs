@@ -34,11 +34,10 @@ namespace Assets.Scripts
                 if (highest != null)
                 {
                     transform.SetParent(highest.transform);
-                    highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 25, 0));
+                    highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
                     transform.rotation = highest.transform.rotation;
 
-                    if (_prevHighest == highest)
-                        transform.position += highest.transform.position - _prevPosition;
+                    if (_prevHighest == highest) transform.position += highest.transform.position - _prevPosition;
                     _prevHighest = highest;
                     _prevPosition = highest.transform.position;
                 }
@@ -68,7 +67,7 @@ namespace Assets.Scripts
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if(!_isOnRope) transform.rotation = new Quaternion(0, 0, 0, 0);
+            if(!_isOnRope) transform.rotation = col.collider.transform.rotation;
         }
 
         private void UpdateJumping()
