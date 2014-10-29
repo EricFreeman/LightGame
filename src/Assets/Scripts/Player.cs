@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -17,6 +18,9 @@ namespace Assets.Scripts
 
         private Vector3 _prevPosition;
         private GameObject _prevHighest;
+
+        public GameObject Dust;
+        private int _dustCounter;
 
         void FixedUpdate()
         {
@@ -48,6 +52,11 @@ namespace Assets.Scripts
 
                 // Horizontal movement
                 rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
+
+                if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
+                    SpawnDust();
+                else
+                    _dustCounter = 0;
             }
         }
 
@@ -69,6 +78,7 @@ namespace Assets.Scripts
         {
             if(!_isOnRope) transform.rotation = col.collider.transform.rotation;
             if(col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
+            if(col.gameObject.tag == "Floor") SpawnDust(true);
         }
 
         private void UpdateJumping()
@@ -86,6 +96,25 @@ namespace Assets.Scripts
         {
             var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f);
             return hit.collider != null;
+        }
+
+        private void SpawnDust(bool isOverride = false)
+        {
+            if (isOverride)
+                _dustCounter = 0;
+            else
+            {
+                var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f);
+                if (hit.collider == null || hit.collider.tag != "Floor") return;
+            }
+
+            _dustCounter--;
+            if (_dustCounter <= 0)
+            {
+                var d = (GameObject) Instantiate(Dust);
+                d.transform.position = transform.position - new Vector3(0, .08f, 0);
+                _dustCounter = 15;
+            }
         }
     }
 }
