@@ -19,10 +19,26 @@ namespace Assets.Scripts
         private GameObject _prevHighest;
 
         public GameObject Dust;
+        public GameObject Blood;
+
         private int _dustCounter;
+        private bool _isDead;
+        private int _remainingBlood = 10;
 
         void FixedUpdate()
         {
+            if (_isDead) 
+            {
+                if (_remainingBlood-- > 0)
+                    for (var i = 0; i < 5; i++)
+                    {
+                        var b = (GameObject)Instantiate(Blood);
+                        b.transform.position = transform.position;
+                        b.rigidbody2D.AddForce(new Vector2(Random.Range(-1f, 1f), Random.Range(1f, 2f)) * 50);
+                    }
+                return;
+            }
+
             UpdateJumping();
 
             if (_isOnRope)
@@ -56,6 +72,18 @@ namespace Assets.Scripts
                     SpawnDust();
                 else
                     _dustCounter = 0;
+            }
+        }
+
+        private void OnTriggerEnter2D(Collider2D col)
+        {
+            if (col.tag == "KillZone")
+            {
+                _isDead = true;
+                rigidbody2D.gravityScale = 0;
+                rigidbody2D.velocity = Vector2.zero;
+                transform.SetParent(null);
+                _ropeSegments.Clear();
             }
         }
 
