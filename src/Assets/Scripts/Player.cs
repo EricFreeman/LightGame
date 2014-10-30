@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -94,8 +93,15 @@ namespace Assets.Scripts
 
         private bool IsGrounded()
         {
-            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f);
-            return hit.collider != null;
+            // Check if right side of player or left side of player is touching.
+            // This will account for being slightly over a ledge or something.
+            RaycastHit2D[] hits =
+            {
+                Physics2D.Raycast(transform.position - new Vector3(-.16f, .18f), -Vector2.up, .05f),
+                Physics2D.Raycast(transform.position - new Vector3(.16f, .18f), -Vector2.up, .05f)
+            };
+
+            return hits.Where(x => x.collider != null).Any(x => x.collider.tag != "Player");
         }
 
         private void SpawnDust(bool isOverride = false)

@@ -13,6 +13,8 @@ namespace Assets.Scripts
         {
             transform.localScale *= 1.01f;
             _material.color = new Color(_material.color.r, _material.color.g, _material.color.b, _material.color.a - .01f);
+
+            if(_material.color.a <= 0) Destroy(gameObject);
         }
     }
 }
