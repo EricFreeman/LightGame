@@ -25,6 +25,8 @@ namespace Assets.Scripts
         private bool _isDead;
         private int _remainingBlood = 10;
 
+        private GameObject _moveTowardsCenter;
+
         void FixedUpdate()
         {
             if (_isDead) 
@@ -45,20 +47,34 @@ namespace Assets.Scripts
             {
                 rigidbody2D.gravityScale = 0;
 
-                // Climb rope
-                rigidbody2D.velocity = new Vector2(0, Input.GetAxisRaw("Vertical") * Speed);
-
-                // Swing on rope
                 var highest = _ropeSegments.OrderByDescending(x => x.transform.position.y).FirstOrDefault();
                 if (highest != null)
                 {
-                    transform.SetParent(highest.transform);
+                    // Climb rope
+                    rigidbody2D.velocity = new Vector2(highest.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * highest.transform.up.y);
+
+                    // swing on rope
                     highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
                     transform.rotation = highest.transform.rotation;
 
                     if (_prevHighest == highest) transform.position += highest.transform.position - _prevPosition;
                     _prevHighest = highest;
                     _prevPosition = highest.transform.position;
+                }
+
+                // Move towards middle of rope if you've somehow moved off of it
+                if (_moveTowardsCenter != null)
+                {
+                    transform.position = Vector3.MoveTowards(transform.position,
+                        _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up * .24f, .1f);
+
+                    if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
+                        _moveTowardsCenter = null;
+
+//                    rigidbody2D.AddForce(
+//                        new Vector2(
+//                            transform.position.x - _moveTowardsCenter.transform.position.x, 
+//                            transform.position.y - _moveTowardsCenter.transform.position.y).normalized * 100);
                 }
             }
             else
@@ -82,14 +98,28 @@ namespace Assets.Scripts
                 _isDead = true;
                 rigidbody2D.gravityScale = 0;
                 rigidbody2D.velocity = Vector2.zero;
-                transform.SetParent(null);
                 _ropeSegments.Clear();
+            }
+            else if (col.tag == "Rope")
+            {
+                if (_ropeSegments.Count() == 1 && col.gameObject != _moveTowardsCenter)
+                {
+                    _ropeSegments.Clear();
+                    _moveTowardsCenter = null;
+                    _ropeSegments.Add(col.gameObject);
+                }
             }
         }
 
         private void OnTriggerExit2D(Collider2D col)
         {
-            if (col.tag == "Rope" && _ropeSegments.Count > 1) _ropeSegments.Remove(col.gameObject);
+            if (col.tag == "Rope")
+            {
+                if (_ropeSegments.Count > 1)
+                    _ropeSegments.Remove(col.gameObject);
+                else if(_ropeSegments.Count == 1)
+                    _moveTowardsCenter = _ropeSegments[0].gameObject;
+            }
         }
 
         private void OnTriggerStay2D(Collider2D col)
@@ -114,22 +144,26 @@ namespace Assets.Scripts
             {
                 rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
                 rigidbody2D.gravityScale = 1;
-                transform.SetParent(null);
                 _ropeSegments.Clear();
             }
         }
 
         private bool IsGrounded()
         {
+            return GetRaycastHits().Any();
+        }
+
+        private IEnumerable<RaycastHit2D> GetRaycastHits()
+        {
             // Check if right side of player or left side of player is touching.
             // This will account for being slightly over a ledge or something.
             RaycastHit2D[] hits =
             {
                 Physics2D.Raycast(transform.position - new Vector3(-.16f, .18f), -Vector2.up, .05f),
+                Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f),
                 Physics2D.Raycast(transform.position - new Vector3(.16f, .18f), -Vector2.up, .05f)
             };
-
-            return hits.Where(x => x.collider != null).Any(x => x.collider.tag != "Player");
+            return hits.Where(x => x.collider != null && x.collider.tag != "Player");
         }
 
         private void SpawnDust(bool isOverride = false)
