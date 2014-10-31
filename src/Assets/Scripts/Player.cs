@@ -70,11 +70,6 @@ namespace Assets.Scripts
 
                     if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
                         _moveTowardsCenter = null;
-
-//                    rigidbody2D.AddForce(
-//                        new Vector2(
-//                            transform.position.x - _moveTowardsCenter.transform.position.x, 
-//                            transform.position.y - _moveTowardsCenter.transform.position.y).normalized * 100);
                 }
             }
             else
@@ -136,12 +131,14 @@ namespace Assets.Scripts
             if(!_isOnRope) transform.rotation = col.collider.transform.rotation;
             if(col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
             if(col.gameObject.tag == "Floor") SpawnDust(true);
+            if(col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
         }
 
         private void UpdateJumping()
         {
             if ((IsGrounded() || _isOnRope) && Input.GetKeyDown(KeyCode.Space))
             {
+                transform.SetParent(null);
                 rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
                 rigidbody2D.gravityScale = 1;
                 _ropeSegments.Clear();
