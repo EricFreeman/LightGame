@@ -79,6 +79,7 @@ namespace Assets.Scripts
                 // Horizontal movement
                 rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
 
+                // Dust particles from running
                 if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
                     SpawnDust();
                 else

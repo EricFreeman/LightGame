@@ -17,8 +17,8 @@ namespace Assets.Scripts
                 MoveDirection ? StartPosition : EndPosition,
                 Speed * Time.deltaTime);
 
-            if (Vector3.Distance(transform.position, StartPosition) < .1f) MoveDirection = false;
-            if (Vector3.Distance(transform.position, EndPosition) < .1f) MoveDirection = true;
+            if (Vector3.Distance(transform.position, StartPosition) < .01f) MoveDirection = false;
+            if (Vector3.Distance(transform.position, EndPosition) < .01f) MoveDirection = true;
         }
     }
 }
