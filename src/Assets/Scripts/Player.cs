@@ -135,6 +135,11 @@ namespace Assets.Scripts
             if(col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
         }
 
+        private void OnCollisionExit2D(Collision2D col)
+        {
+            if (col.gameObject.tag == "MovingPlatform") transform.SetParent(null);
+        }
+
         private void UpdateJumping()
         {
             if ((IsGrounded() || _isOnRope) && Input.GetKeyDown(KeyCode.Space))
