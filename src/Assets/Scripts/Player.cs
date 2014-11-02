@@ -103,7 +103,7 @@ namespace Assets.Scripts
             {
                 if (_ropeSegments.Count() == 1 && col.gameObject != _moveTowardsCenter)
                 {
-                    _ropeSegments.Clear();
+//                    _ropeSegments.Clear();
                     _moveTowardsCenter = null;
                     _ropeSegments.Add(col.gameObject);
                 }
