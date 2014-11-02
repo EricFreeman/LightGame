@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Util;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -26,6 +27,8 @@ namespace Assets.Scripts
         private int _remainingBlood = 10;
 
         private GameObject _moveTowardsCenter;
+
+        public List<AudioClip> Footsteps;
 
         void FixedUpdate()
         {
@@ -176,7 +179,7 @@ namespace Assets.Scripts
             else
             {
                 var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f);
-                if (hit.collider == null || hit.collider.tag != "Floor") return;
+                if (hit.collider == null /*|| hit.collider.tag != "Floor"*/) return;
             }
 
             _dustCounter--;
@@ -185,6 +188,7 @@ namespace Assets.Scripts
                 var d = (GameObject) Instantiate(Dust);
                 d.transform.position = transform.position - new Vector3(0, .08f, 0);
                 _dustCounter = 15;
+                AudioSource.PlayClipAtPoint(Footsteps.Random(), transform.position);
             }
         }
     }
