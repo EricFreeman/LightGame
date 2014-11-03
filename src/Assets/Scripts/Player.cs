@@ -28,6 +28,9 @@ namespace Assets.Scripts
 
         private GameObject _moveTowardsCenter;
 
+        private GameObject _dragObject;
+        public Vector3 _dragOffset;
+
         public List<AudioClip> Footsteps;
 
         void FixedUpdate()
@@ -82,6 +85,34 @@ namespace Assets.Scripts
                 // Horizontal movement
                 rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
 
+                // Drag objects
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    if (_dragObject == null)
+                    {
+                        var left = Physics2D.Raycast(transform.position - new Vector3(.16f, 0, 0), -Vector2.right, .01f);
+                        var right = Physics2D.Raycast(transform.position + new Vector3(.16f, 0, 0), Vector2.right, .01f);
+
+                        var obj = (left.collider != null && left.collider.tag == "Draggable")
+                            ? left.collider
+                            : (right.collider != null && right.collider.tag == "Draggable") ? right.collider : null;
+
+                        if (obj != null)
+                        {
+                            _dragObject = obj.gameObject;
+                            _dragOffset = (transform.position - _dragObject.transform.position).x > 0 ? new Vector3(.32f, 0, 0) : new Vector3(-.32f, 0, 0);
+                        }
+                    }
+                    else
+                    {
+                        _dragObject.transform.position = transform.position - _dragOffset;
+                    }
+                }
+                else
+                {
+                    _dragObject = null;
+                }
+
                 // Dust particles from running
                 if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
                     SpawnDust();
@@ -103,7 +134,6 @@ namespace Assets.Scripts
             {
                 if (_ropeSegments.Count() == 1 && col.gameObject != _moveTowardsCenter)
                 {
-//                    _ropeSegments.Clear();
                     _moveTowardsCenter = null;
                     _ropeSegments.Add(col.gameObject);
                 }
@@ -165,9 +195,9 @@ namespace Assets.Scripts
             // This will account for being slightly over a ledge or something.
             RaycastHit2D[] hits =
             {
-                Physics2D.Raycast(transform.position - new Vector3(-.16f, .18f), -Vector2.up, .05f),
+                Physics2D.Raycast(transform.position - new Vector3(-.15f, .18f), -Vector2.up, .05f),
                 Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f),
-                Physics2D.Raycast(transform.position - new Vector3(.16f, .18f), -Vector2.up, .05f)
+                Physics2D.Raycast(transform.position - new Vector3(.15f, .18f), -Vector2.up, .05f)
             };
             return hits.Where(x => x.collider != null && x.collider.tag != "Player");
         }
