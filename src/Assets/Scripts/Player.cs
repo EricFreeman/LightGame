@@ -53,19 +53,22 @@ namespace Assets.Scripts
             {
                 rigidbody2D.gravityScale = 0;
 
-                var highest = _ropeSegments.OrderByDescending(x => x.transform.position.y).FirstOrDefault();
-                if (highest != null)
+                var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
+                GameObject middle = null;
+                if (all.Any()) middle = _ropeSegments[_ropeSegments.Count / 2];
+
+                if (middle != null)
                 {
                     // Climb rope
-                    rigidbody2D.velocity = new Vector2(highest.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * highest.transform.up.y);
+                    rigidbody2D.velocity = new Vector2(middle.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y);
 
                     // swing on rope
-                    highest.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
-                    transform.rotation = highest.transform.rotation;
+                    middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
+                    transform.rotation = middle.transform.rotation;
 
-                    if (_prevHighest == highest) transform.position += highest.transform.position - _prevPosition;
-                    _prevHighest = highest;
-                    _prevPosition = highest.transform.position;
+                    if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
+                    _prevHighest = middle;
+                    _prevPosition = middle.transform.position;
                 }
 
                 // Move towards middle of rope if you've somehow moved off of it
