@@ -26,8 +26,6 @@ namespace Assets.Scripts
         private bool _isDead;
         private int _remainingBlood = 10;
 
-        private GameObject _moveTowardsCenter;
-
         private GameObject _dragObject;
         public Vector3 _dragOffset;
 
@@ -59,6 +57,15 @@ namespace Assets.Scripts
 
                 if (middle != null)
                 {
+                    // Stick player to rope segment
+                    if (gameObject.GetComponent<DistanceJoint2D>() == null)
+                    {
+                        var distance = gameObject.AddComponent<DistanceJoint2D>();
+                        distance.maxDistanceOnly = true;
+                        distance.distance = .24f;
+                    }
+                    gameObject.GetComponent<DistanceJoint2D>().connectedBody = middle.rigidbody2D;
+
                     // Climb rope
                     rigidbody2D.velocity = new Vector2(middle.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y);
 
@@ -69,16 +76,6 @@ namespace Assets.Scripts
                     if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
                     _prevHighest = middle;
                     _prevPosition = middle.transform.position;
-                }
-
-                // Move towards middle of rope if you've somehow moved off of it
-                if (_moveTowardsCenter != null)
-                {
-                    transform.position = Vector3.MoveTowards(transform.position,
-                        _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up * .24f, .1f);
-
-                    if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
-                        _moveTowardsCenter = null;
                 }
             }
             else
@@ -133,24 +130,19 @@ namespace Assets.Scripts
                 rigidbody2D.velocity = Vector2.zero;
                 _ropeSegments.Clear();
             }
-            else if (col.tag == "Rope")
-            {
-                if (_ropeSegments.Count() == 1 && col.gameObject != _moveTowardsCenter)
-                {
-                    _moveTowardsCenter = null;
-                    _ropeSegments.Add(col.gameObject);
-                }
-            }
         }
 
         private void OnTriggerExit2D(Collider2D col)
         {
             if (col.tag == "Rope")
             {
-                if (_ropeSegments.Count > 1)
-                    _ropeSegments.Remove(col.gameObject);
-                else if(_ropeSegments.Count == 1)
-                    _moveTowardsCenter = _ropeSegments[0].gameObject;
+                _ropeSegments.Remove(col.gameObject);
+
+                if (!_ropeSegments.Any())
+                {
+                    if (gameObject.GetComponent<DistanceJoint2D>() != null)
+                        Destroy(gameObject.GetComponent<DistanceJoint2D>());
+                }
             }
         }
 
