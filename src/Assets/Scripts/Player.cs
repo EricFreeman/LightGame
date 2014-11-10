@@ -59,6 +59,12 @@ namespace Assets.Scripts
 
                 if (middle != null)
                 {
+                    if (_centerPlayer)
+                    {
+                        transform.position = new Vector3(middle.transform.position.x, transform.position.y, transform.position.z);
+                        _centerPlayer = false;
+                    }
+
                     // Climb rope
                     rigidbody2D.velocity = new Vector2(middle.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y);
 
@@ -124,6 +130,8 @@ namespace Assets.Scripts
             }
         }
 
+        private bool _centerPlayer;
+
         private void OnTriggerEnter2D(Collider2D col)
         {
             if (col.tag == "KillZone")
@@ -158,6 +166,7 @@ namespace Assets.Scripts
         {
             if (_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             {
+                if (!_isOnRope) _centerPlayer = true;
                 if(!_ropeSegments.Contains(col.gameObject))
                     _ropeSegments.Add(col.gameObject);
             }
