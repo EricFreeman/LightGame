@@ -77,7 +77,7 @@ namespace Assets.Scripts
                     _prevPosition = middle.transform.position;
 
                     // Drop off rope if you climb off bottom
-                    if (Mathf.Abs(transform.position.y - middle.transform.position.y) > .16f)
+                    if (Mathf.Abs(transform.position.y - middle.transform.position.y) > .26f)
                         _ropeSegments.Clear();
                 }
 
