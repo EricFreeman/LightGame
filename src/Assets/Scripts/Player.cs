@@ -68,13 +68,17 @@ namespace Assets.Scripts
                     // Climb rope
                     rigidbody2D.velocity = new Vector2(middle.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y);
 
-                    // swing on rope
+                    // Swing on rope
                     middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
                     transform.rotation = middle.transform.rotation;
 
                     if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
                     _prevHighest = middle;
                     _prevPosition = middle.transform.position;
+
+                    // Drop off rope if you climb off bottom
+                    if (Mathf.Abs(transform.position.y - middle.transform.position.y) > .16f)
+                        _ropeSegments.Clear();
                 }
 
                 // Move towards middle of rope if you've somehow moved off of it
