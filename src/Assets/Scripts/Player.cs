@@ -66,7 +66,11 @@ namespace Assets.Scripts
                     }
 
                     // Climb rope
-                    rigidbody2D.velocity = new Vector2(middle.transform.up.x * Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y);
+                    rigidbody2D.velocity = CanMoveUp(middle) ?
+                        new Vector2(
+                            middle.transform.up.x * Input.GetAxisRaw("Vertical"),
+                            Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y) :
+                        new Vector2(rigidbody2D.velocity.x, 0);
 
                     // Swing on rope
                     middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
@@ -75,10 +79,6 @@ namespace Assets.Scripts
                     if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
                     _prevHighest = middle;
                     _prevPosition = middle.transform.position;
-
-                    // Drop off rope if you climb off bottom
-                    if (Mathf.Abs(transform.position.y - middle.transform.position.y) > .26f)
-                        _ropeSegments.Clear();
                 }
 
                 // Move towards middle of rope if you've somehow moved off of it
@@ -132,6 +132,13 @@ namespace Assets.Scripts
                 else
                     _dustCounter = 0;
             }
+        }
+
+        private bool CanMoveUp(GameObject middle)
+        {
+            if (Input.GetAxisRaw("Vertical") > 0) return true;
+
+            return _ropeSegments.Count > 2;
         }
 
         private bool _centerPlayer;
