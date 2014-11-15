@@ -1,17 +1,18 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
     public class Switch : MonoBehaviour
     {
-        public GameObject SwitchableObject;
+        public List<GameObject> SwitchableObject;
 
         private bool _canSwitch;
 
         void Update()
         {
             if (_canSwitch && Input.GetKeyDown(KeyCode.LeftShift))
-                SwitchableObject.SendMessage("Switch");
+                SwitchableObject.ForEach(x => x.SendMessage("Switch"));
         }
 
         void OnTriggerEnter2D(Collider2D col)
