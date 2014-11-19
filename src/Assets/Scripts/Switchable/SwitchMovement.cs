@@ -13,12 +13,12 @@ namespace Assets.Scripts.Switchable
 
         void Start()
         {
-            _initial = transform.position;
+            _initial = transform.localPosition;
         }
 
         void Update()
         {
-            transform.position = transform.position.MoveTowards(_isOn ? EndPosition : _initial, Speed * Time.deltaTime);
+            transform.localPosition = transform.localPosition.MoveTowards(_isOn ? EndPosition : _initial, Speed * Time.deltaTime);
         }
 
         public void Switch()

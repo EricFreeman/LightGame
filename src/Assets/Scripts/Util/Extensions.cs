@@ -18,5 +18,10 @@ namespace Assets.Scripts.Util
         {
             return Vector3.MoveTowards(pos, end, speed);
         }
+
+        public static Quaternion ToQuaternion(this Vector2 vector)
+        {
+            return Quaternion.LookRotation(vector);
+        }
     }
 }

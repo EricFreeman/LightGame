@@ -175,7 +175,7 @@ namespace Assets.Scripts
 
         private void OnTriggerStay2D(Collider2D col)
         {
-            if (_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            if (_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) && col.tag == "Rope")
             {
                 if (!_isOnRope) _centerPlayer = true;
                 if(!_ropeSegments.Contains(col.gameObject))
@@ -185,7 +185,7 @@ namespace Assets.Scripts
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if(!_isOnRope) transform.rotation = col.collider.transform.rotation;
+            if(!_isOnRope) transform.rotation = new Quaternion();
             if(col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
             if(col.gameObject.tag == "Floor") SpawnDust(true);
             if(col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
