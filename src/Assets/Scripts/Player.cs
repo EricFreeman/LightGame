@@ -175,7 +175,7 @@ namespace Assets.Scripts
 
         private void OnTriggerStay2D(Collider2D col)
         {
-            if (_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) && col.tag == "Rope")
+            if ((_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) && col.tag == "Rope")
             {
                 if (!_isOnRope) _centerPlayer = true;
                 if (!_ropeSegments.Contains(col.gameObject))
