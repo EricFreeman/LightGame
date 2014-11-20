@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Util;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts
 {
@@ -27,111 +29,33 @@ namespace Assets.Scripts
         private int _remainingBlood = 10;
 
         private GameObject _moveTowardsCenter;
+        private bool _centerPlayer;
 
         private GameObject _dragObject;
         public Vector3 _dragOffset;
 
         public List<AudioClip> Footsteps;
 
+        private readonly Dictionary<PlayerState, Action> _stateActions = new Dictionary<PlayerState, Action>();
+
+        void Start()
+        {
+            _stateActions.Add(PlayerState.Default, DefaultAction);
+            _stateActions.Add(PlayerState.OnRope, RopeAction);
+            _stateActions.Add(PlayerState.Dead, DeadAction);
+        }
+
         void Update()
         {
-            if (_isDead)
-            {
-                if (_remainingBlood-- > 0)
-                    for (var i = 0; i < 5; i++)
-                    {
-                        var b = (GameObject)Instantiate(Blood);
-                        b.transform.position = transform.position;
-                        b.rigidbody2D.AddForce(new Vector2(Random.Range(-1f, 1f), Random.Range(1f, 2f)) * 50);
-                    }
-                return;
-            }
+            _stateActions[DeterminePlayerState()]();
+        }
 
-            UpdateJumping();
+        private PlayerState DeterminePlayerState()
+        {
+            if (_isDead) return PlayerState.Dead;
+            if (_isOnRope) return PlayerState.OnRope;
 
-            if (_isOnRope)
-            {
-                rigidbody2D.gravityScale = 0;
-
-                var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
-                GameObject middle = null;
-                if (all.Any()) middle = _ropeSegments[_ropeSegments.Count / 2];
-
-                if (middle != null)
-                {
-                    if (_centerPlayer)
-                    {
-                        transform.position = new Vector3(middle.transform.position.x, transform.position.y, transform.position.z);
-                        _centerPlayer = false;
-                    }
-
-                    // Climb rope
-                    rigidbody2D.velocity = CanMoveUp(middle) ?
-                        new Vector2(
-                            middle.transform.up.x * Input.GetAxisRaw("Vertical"),
-                            Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y) :
-                        new Vector2(rigidbody2D.velocity.x, 0);
-
-                    // Swing on rope
-                    middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
-                    transform.rotation = middle.transform.rotation;
-
-                    if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
-                    _prevHighest = middle;
-                    _prevPosition = middle.transform.position;
-                }
-
-                // Move towards middle of rope if you've somehow moved off of it
-                if (_moveTowardsCenter != null)
-                {
-                    transform.position = Vector3.MoveTowards(transform.position,
-                        _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up * .24f, .1f);
-
-                    if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
-                        _moveTowardsCenter = null;
-                }
-            }
-            else
-            {
-                rigidbody2D.gravityScale = 1;
-
-                // Horizontal movement
-                rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
-
-                // Drag objects
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    if (_dragObject == null)
-                    {
-                        var left = Physics2D.Raycast(transform.position - new Vector3(.16f, 0, 0), -Vector2.right, .01f);
-                        var right = Physics2D.Raycast(transform.position + new Vector3(.16f, 0, 0), Vector2.right, .01f);
-
-                        var obj = (left.collider != null && left.collider.tag == "Draggable")
-                            ? left.collider
-                            : (right.collider != null && right.collider.tag == "Draggable") ? right.collider : null;
-
-                        if (obj != null)
-                        {
-                            _dragObject = obj.gameObject;
-                            _dragOffset = (transform.position - _dragObject.transform.position).x > 0 ? new Vector3(.32f, 0, 0) : new Vector3(-.32f, 0, 0);
-                        }
-                    }
-                    else
-                    {
-                        _dragObject.transform.position = transform.position - _dragOffset;
-                    }
-                }
-                else
-                {
-                    _dragObject = null;
-                }
-
-                // Dust particles from running
-                if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
-                    SpawnDust();
-                else
-                    _dustCounter = 0;
-            }
+            return PlayerState.Default;
         }
 
         private bool CanMoveUp(GameObject middle)
@@ -140,8 +64,6 @@ namespace Assets.Scripts
 
             return _ropeSegments.Count > 2;
         }
-
-        private bool _centerPlayer;
 
         private void OnTriggerEnter2D(Collider2D col)
         {
@@ -196,15 +118,126 @@ namespace Assets.Scripts
             if (col.gameObject.tag == "MovingPlatform") transform.SetParent(null);
         }
 
-        private void UpdateJumping()
+        private void DeadAction()
         {
-            if ((IsGrounded() || _isOnRope) && Input.GetKeyDown(KeyCode.Space))
+            if (_remainingBlood-- > 0)
             {
-                transform.SetParent(null);
-                rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
-                rigidbody2D.gravityScale = 1;
-                _ropeSegments.Clear();
+                for (var i = 0; i < 5; i++)
+                {
+                    var b = (GameObject)Instantiate(Blood);
+                    b.transform.position = transform.position;
+                    b.rigidbody2D.AddForce(new Vector2(Random.Range(-1f, 1f), Random.Range(1f, 2f)) * 50);
+                }
             }
+        }
+
+        private void RopeAction()
+        {
+            rigidbody2D.gravityScale = 0;
+
+            // Jump off rope
+            if (_isOnRope && Input.GetKeyDown(KeyCode.Space))
+                Jump();
+
+            // Grab the middle rope segment player collides with since this would be closest to player's center
+            var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
+            GameObject middle = null;
+            if (all.Any()) middle = _ropeSegments[_ropeSegments.Count / 2];
+
+            if (middle != null)
+            {
+                if (_centerPlayer)
+                {
+                    transform.position = new Vector3(middle.transform.position.x, transform.position.y, transform.position.z);
+                    _centerPlayer = false;
+                }
+
+                // Climb rope
+                rigidbody2D.velocity = CanMoveUp(middle) ?
+                    new Vector2(
+                        middle.transform.up.x * Input.GetAxisRaw("Vertical"),
+                        Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y) :
+                    new Vector2(rigidbody2D.velocity.x, 0);
+
+                // Swing on rope
+                middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
+                transform.rotation = middle.transform.rotation;
+
+                if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
+                _prevHighest = middle;
+                _prevPosition = middle.transform.position;
+            }
+
+            // Move towards middle of rope if you've somehow moved off of it
+            if (_moveTowardsCenter != null)
+            {
+                transform.position = Vector3.MoveTowards(transform.position,
+                    _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up * .24f, .1f);
+
+                if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
+                    _moveTowardsCenter = null;
+            }
+        }
+
+        private void DefaultAction()
+        {
+            rigidbody2D.gravityScale = 1;
+
+            // Horizontal movement
+            rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
+
+            // Jumping
+            if (IsGrounded() && Input.GetKeyDown(KeyCode.Space))
+                Jump();
+
+            // Update Dragging
+            DragObject();
+
+            // Dust particles from running
+            if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
+                SpawnDust();
+            else
+                _dustCounter = 0;
+        }
+
+        private void DragObject()
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                if (_dragObject == null)
+                {
+                    var left = Physics2D.Raycast(transform.position - new Vector3(.16f, 0, 0), -Vector2.right, .01f);
+                    var right = Physics2D.Raycast(transform.position + new Vector3(.16f, 0, 0), Vector2.right, .01f);
+
+                    var obj = (left.collider != null && left.collider.tag == "Draggable")
+                        ? left.collider
+                        : (right.collider != null && right.collider.tag == "Draggable") ? right.collider : null;
+
+                    if (obj != null)
+                    {
+                        _dragObject = obj.gameObject;
+                        _dragOffset = (transform.position - _dragObject.transform.position).x > 0
+                            ? new Vector3(.32f, 0, 0)
+                            : new Vector3(-.32f, 0, 0);
+                    }
+                }
+                else
+                {
+                    _dragObject.transform.position = transform.position - _dragOffset;
+                }
+            }
+            else
+            {
+                _dragObject = null;
+            }
+        }
+
+        private void Jump()
+        {
+            transform.SetParent(null);
+            rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
+            rigidbody2D.gravityScale = 1;
+            _ropeSegments.Clear();
         }
 
         private bool IsGrounded()
@@ -244,5 +277,12 @@ namespace Assets.Scripts
                 AudioSource.PlayClipAtPoint(Footsteps.Random(), transform.position);
             }
         }
+    }
+
+    public enum PlayerState
+    {
+        Default,
+        OnRope,
+        Dead
     }
 }
