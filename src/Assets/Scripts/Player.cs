@@ -33,9 +33,9 @@ namespace Assets.Scripts
 
         public List<AudioClip> Footsteps;
 
-        void FixedUpdate()
+        void Update()
         {
-            if (_isDead) 
+            if (_isDead)
             {
                 if (_remainingBlood-- > 0)
                     for (var i = 0; i < 5; i++)
@@ -168,7 +168,7 @@ namespace Assets.Scripts
             {
                 if (_ropeSegments.Count > 1)
                     _ropeSegments.Remove(col.gameObject);
-                else if(_ropeSegments.Count == 1)
+                else if (_ropeSegments.Count == 1)
                     _moveTowardsCenter = _ropeSegments[0].gameObject;
             }
         }
@@ -178,17 +178,17 @@ namespace Assets.Scripts
             if (_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) && col.tag == "Rope")
             {
                 if (!_isOnRope) _centerPlayer = true;
-                if(!_ropeSegments.Contains(col.gameObject))
+                if (!_ropeSegments.Contains(col.gameObject))
                     _ropeSegments.Add(col.gameObject);
             }
         }
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if(!_isOnRope) transform.rotation = new Quaternion();
-            if(col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
-            if(col.gameObject.tag == "Floor") SpawnDust(true);
-            if(col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
+            if (!_isOnRope) transform.rotation = new Quaternion();
+            if (col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
+            if (col.gameObject.tag == "Floor") SpawnDust(true);
+            if (col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
         }
 
         private void OnCollisionExit2D(Collision2D col)
@@ -238,7 +238,7 @@ namespace Assets.Scripts
             _dustCounter--;
             if (_dustCounter <= 0)
             {
-                var d = (GameObject) Instantiate(Dust);
+                var d = (GameObject)Instantiate(Dust);
                 d.transform.position = transform.position - new Vector3(0, .08f, 0);
                 _dustCounter = 15;
                 AudioSource.PlayClipAtPoint(Footsteps.Random(), transform.position);
