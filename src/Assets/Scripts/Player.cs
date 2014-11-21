@@ -19,7 +19,7 @@ namespace Assets.Scripts
         private readonly List<GameObject> _ropeSegments = new List<GameObject>();
 
         private Vector3 _prevPosition;
-        private GameObject _prevHighest;
+        private GameObject _prevMiddle;
 
         public GameObject Dust;
         public GameObject Blood;
@@ -163,8 +163,9 @@ namespace Assets.Scripts
                 middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
                 transform.rotation = middle.transform.rotation;
 
-                if (_prevHighest == middle) transform.position += middle.transform.position - _prevPosition;
-                _prevHighest = middle;
+                // Move player with swing of rope
+                if (_prevMiddle == middle) transform.position += middle.transform.position - _prevPosition;
+                _prevMiddle = middle;
                 _prevPosition = middle.transform.position;
             }
 
