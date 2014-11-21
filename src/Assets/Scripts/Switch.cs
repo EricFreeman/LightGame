@@ -8,6 +8,7 @@ namespace Assets.Scripts
         public List<GameObject> SwitchableObject;
         public Sprite OnSprite;
         public Sprite OffSprite;
+        public SpriteRenderer Light;
 
         public bool IsOn;
 
@@ -20,6 +21,7 @@ namespace Assets.Scripts
 
         void Update()
         {
+            Light.color = IsOn ? new Color(.51f, .79f, .61f) : new Color(.96f, .6f, .62f);
             if (_canSwitch && Input.GetKeyDown(KeyCode.LeftShift))
                 Execute();
         }
