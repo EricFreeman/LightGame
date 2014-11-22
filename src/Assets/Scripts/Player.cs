@@ -43,6 +43,8 @@ namespace Assets.Scripts
             _stateActions.Add(PlayerState.Default, DefaultAction);
             _stateActions.Add(PlayerState.OnRope, RopeAction);
             _stateActions.Add(PlayerState.Dead, DeadAction);
+
+            if (SpawnPoint.Point.HasValue) transform.position = SpawnPoint.Point.Value;
         }
 
         void Update()
@@ -129,6 +131,8 @@ namespace Assets.Scripts
                     b.rigidbody2D.AddForce(new Vector2(Random.Range(-1f, 1f), Random.Range(1f, 2f)) * 50);
                 }
             }
+
+            if(Input.anyKeyDown) Application.LoadLevel(Application.loadedLevel);
         }
 
         private void RopeAction()
