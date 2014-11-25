@@ -115,6 +115,12 @@ namespace Assets.Scripts
             if (col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
         }
 
+        private void OnCollisionStay2D(Collision2D col)
+        {
+            foreach (ContactPoint2D contact in col.contacts)
+                Debug.DrawLine(contact.point, contact.point + contact.normal, Color.green, .1f);
+        }
+
         private void OnCollisionExit2D(Collision2D col)
         {
             if (col.gameObject.tag == "MovingPlatform") transform.SetParent(null);
@@ -189,6 +195,8 @@ namespace Assets.Scripts
             rigidbody2D.gravityScale = 1;
 
             // Horizontal movement
+//            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f, 0), -Vector2.up, .1f);
+//            if(hit.collider == null || hit.collider.gameObject == null || Math.Abs(hit.normal.y - 1) <= .3f)
             rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
 
             // Jumping
