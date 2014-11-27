@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -7,7 +6,29 @@ namespace Assets.Scripts
     {
         public float Length = 3;
 
+        private bool _isGrappled;
+        private LineRenderer _line;
+        private GameObject _grapple;
+
+        void Start()
+        {
+            _line = new GameObject("Line").AddComponent<LineRenderer>();
+            _line.SetVertexCount(2);
+            _line.SetWidth(.025f, .025f);
+            _line.gameObject.SetActive(false);
+
+            _grapple = new GameObject("Grapple");
+            _grapple.AddComponent<Rigidbody2D>();
+            _grapple.rigidbody2D.isKinematic = true;
+        }
+
         void Update()
+        {
+            if (_isGrappled) UpdateGrapple();
+            else CheckForGrapple();
+        }
+
+        private void CheckForGrapple()
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -20,19 +41,33 @@ namespace Assets.Scripts
                 var distance = Vector3.Distance(transform.position, hit.point);
                 if (hit.collider != null && distance <= Length)
                 {
-                    var line = new GameObject().AddComponent<LineRenderer>();
-                    line.SetVertexCount(2);
-                    line.SetPosition(0, transform.position);
-                    line.SetPosition(1, hit.point);
-                    line.SetWidth(0.025F, 0.025F);
+                    _line.SetPosition(0, transform.position);
+                    _line.SetPosition(1, hit.point);
+                    _line.gameObject.SetActive(true);
 
-                    var grapple = new GameObject().AddComponent<Rigidbody2D>();
-                    grapple.rigidbody2D.isKinematic = true;
-                    grapple.position = hit.point;
-                    gameObject.AddComponent<DistanceJoint2D>();
-                    gameObject.GetComponent<DistanceJoint2D>().connectedBody = grapple.rigidbody2D;
-                    gameObject.GetComponent<DistanceJoint2D>().distance = distance;
+                    var joint = gameObject.AddComponent<DistanceJoint2D>();
+                    joint.connectedBody = _grapple.rigidbody2D;
+                    joint.distance = distance;
+
+                    _grapple.transform.position = hit.point;
+
+                    _isGrappled = true;
                 }
+            }
+        }
+
+        private void UpdateGrapple()
+        {
+            var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
+            _line.SetPosition(0, transform.position);
+            _line.SetPosition(1, hit.point);
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                Destroy(gameObject.GetComponent<DistanceJoint2D>());
+                _line.gameObject.SetActive(false);
+
+                _isGrappled = false;
             }
         }
     }
