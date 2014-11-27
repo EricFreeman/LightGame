@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -13,8 +14,9 @@ namespace Assets.Scripts
                 var mousePosition = Input.mousePosition;
                 mousePosition.z = -Camera.main.transform.position.z;
                 var worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+                var grapplePoint = transform.position + (worldPosition - transform.position) * Length;
 
-                var hit = Physics2D.Linecast(transform.position, worldPosition, ~(1 << 8));
+                var hit = Physics2D.Linecast(transform.position, grapplePoint, ~(1 << 8));
                 if (hit.collider != null)
                 {
                     var line = new GameObject().AddComponent<LineRenderer>();
@@ -22,11 +24,6 @@ namespace Assets.Scripts
                     line.SetPosition(0, transform.position);
                     line.SetPosition(1, hit.point);
                     line.SetWidth(0.025F, 0.025F);
-
-                    Debug.Log(transform.position);
-                    Debug.Log(hit.point);
-
-                    Debug.Log("Should be working!");
                 }
             }
         }
