@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -17,6 +17,7 @@ namespace Assets.Scripts
         private readonly List<Vector2> _points = new List<Vector2>();
         private LineRenderer _line;
         private GameObject _grapple;
+        private GameObject _previousGrapple;
 
         void Start()
         {
@@ -31,6 +32,8 @@ namespace Assets.Scripts
             _grapple.AddComponent<BoxCollider2D>().size = new Vector2(.1f, .1f);
             _grapple.AddComponent<Rigidbody2D>();
             _grapple.rigidbody2D.isKinematic = true;
+
+            _previousGrapple = (GameObject)Instantiate(_grapple);
         }
 
         void Update()
@@ -73,6 +76,7 @@ namespace Assets.Scripts
         private void UpdateGrapple()
         {
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
+            var hitPrev = Physics2D.Linecast(transform.position, _previousGrapple.transform.position, ~(1 << 8));
 
             if (hit.collider.gameObject != _grapple)
             {
@@ -84,7 +88,11 @@ namespace Assets.Scripts
                 for(var i = 0; i < _points.Count; i++)
                     _line.SetPosition(i, _points[i]);
 
+                _previousGrapple.transform.position = _grapple.transform.position;
                 _grapple.transform.position = hit.point;
+
+                GetComponent<DistanceJoint2D>().distance -=
+                        Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
             }
             else if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
             {
@@ -100,6 +108,26 @@ namespace Assets.Scripts
 
                 _line.SetPosition(_points.Count - 1, transform.position);
                 rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
+
+                // if you can see previous point then unroll back to that point
+                if (_points.Count > 2 && hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
+                {
+                    _points.RemoveAt(_points.Count - 2);
+
+                    _line.SetVertexCount(_points.Count);
+                    for (var i = 0; i < _points.Count; i++)
+                        _line.SetPosition(i, _points[i]);
+                    _line.SetPosition(_points.Count - 1, transform.position);
+
+                    GetComponent<DistanceJoint2D>().distance += 
+                        Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
+                    _grapple.transform.position = _previousGrapple.transform.position;
+
+                    if(_points.Count > 2)
+                        _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2);
+                    else
+                        _previousGrapple.transform.position = new Vector3(0,0,-1);
+                }
             }
         }
     }
