@@ -99,10 +99,7 @@ namespace Assets.Scripts
                 // always update the last points in the line to track player
 
                 _line.SetPosition(_points.Count - 1, transform.position);
-                if(Math.Abs(Input.GetAxisRaw("Horizontal")) > 0)
-                    rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
-                else
-                    rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, rigidbody2D.velocity.y);
+                rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
             }
         }
     }
