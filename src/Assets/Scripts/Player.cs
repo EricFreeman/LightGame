@@ -12,6 +12,8 @@ namespace Assets.Scripts
         public float Speed = 5;
         public float JumpForce = 20;
 
+        public GrapplingHook _hook;
+
         private bool _isOnRope
         {
             get { return _ropeSegments.Any(); }
@@ -43,6 +45,9 @@ namespace Assets.Scripts
             _stateActions.Add(PlayerState.Default, DefaultAction);
             _stateActions.Add(PlayerState.OnRope, RopeAction);
             _stateActions.Add(PlayerState.Dead, DeadAction);
+            _stateActions.Add(PlayerState.Nothing, NothingAction);
+
+            _hook = GetComponent<GrapplingHook>();
 
             if (SpawnPoint.Point.HasValue) transform.position = SpawnPoint.Point.Value;
         }
@@ -55,6 +60,7 @@ namespace Assets.Scripts
         private PlayerState DeterminePlayerState()
         {
             if (_isDead) return PlayerState.Dead;
+            if (_hook.IsEnabled) return PlayerState.Nothing;
             if (_isOnRope) return PlayerState.OnRope;
 
             return PlayerState.Default;
@@ -195,8 +201,6 @@ namespace Assets.Scripts
             rigidbody2D.gravityScale = 1;
 
             // Horizontal movement
-//            var hit = Physics2D.Raycast(transform.position - new Vector3(0, .18f, 0), -Vector2.up, .1f);
-//            if(hit.collider == null || hit.collider.gameObject == null || Math.Abs(hit.normal.y - 1) <= .3f)
             rigidbody2D.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * Speed, rigidbody2D.velocity.y);
 
             // Jumping
@@ -212,6 +216,8 @@ namespace Assets.Scripts
             else
                 _dustCounter = 0;
         }
+
+        private void NothingAction() { }
 
         private void DragObject()
         {
@@ -296,6 +302,7 @@ namespace Assets.Scripts
     {
         Default,
         OnRope,
-        Dead
+        Dead,
+        Nothing
     }
 }

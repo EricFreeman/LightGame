@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -7,7 +8,12 @@ namespace Assets.Scripts
     {
         public float Length = 3;
 
-        private float _grappleLength;
+        [HideInInspector]
+        public bool IsEnabled
+        {
+            get { return _points.Count > 0; }
+        }
+
         private readonly List<Vector2> _points = new List<Vector2>();
         private LineRenderer _line;
         private GameObject _grapple;
@@ -18,6 +24,8 @@ namespace Assets.Scripts
             _line.SetVertexCount(2);
             _line.SetWidth(.025f, .025f);
             _line.gameObject.SetActive(false);
+            _line.SetColors(Color.black, Color.black);
+            _line.renderer.material.color = Color.black;
 
             _grapple = new GameObject("Grapple");
             _grapple.AddComponent<BoxCollider2D>().size = new Vector2(.1f, .1f);
@@ -52,25 +60,19 @@ namespace Assets.Scripts
                     _points.Add(hit.point);
                     _points.Add(transform.position);
 
-                    _grappleLength = Vector3.Distance(transform.position, hit.point);
-
                     _grapple.transform.position = hit.point;
+
+                    var joint = gameObject.AddComponent<DistanceJoint2D>();
+                    joint.connectedBody = _grapple.GetComponent<Rigidbody2D>();
+                    joint.distance = Vector3.Distance(hit.point, transform.position);
+                    joint.maxDistanceOnly = true;
                 }
             }
         }
 
         private void UpdateGrapple()
         {
-            if(transform.rigidbody2D.velocity.y <= -1) transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x, -1);
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
-
-            // stop player from moving too far away from grappeled point
-            if(Vector3.Distance(transform.position, _points[0]) > _grappleLength)
-            {
-                transform.position -= 
-                    (transform.position - _grapple.transform.position).normalized * 
-                    (Vector3.Distance(transform.position, _grapple.transform.position) - _grappleLength);
-            }
 
             if (hit.collider.gameObject != _grapple)
             {
@@ -88,6 +90,7 @@ namespace Assets.Scripts
             {
                 // if you retract the grappling hook
 
+                Destroy(gameObject.GetComponent<DistanceJoint2D>());
                 _line.gameObject.SetActive(false);
                 _points.Clear();
             }
@@ -96,6 +99,10 @@ namespace Assets.Scripts
                 // always update the last points in the line to track player
 
                 _line.SetPosition(_points.Count - 1, transform.position);
+                if(Math.Abs(Input.GetAxisRaw("Horizontal")) > 0)
+                    rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
+                else
+                    rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, rigidbody2D.velocity.y);
             }
         }
     }
