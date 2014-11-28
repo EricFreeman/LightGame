@@ -29,7 +29,7 @@ namespace Assets.Scripts
             _line.renderer.material.color = Color.black;
 
             _grapple = new GameObject("Grapple");
-            _grapple.AddComponent<BoxCollider2D>().size = new Vector2(.1f, .1f);
+            _grapple.AddComponent<BoxCollider2D>().size = new Vector2(.25f, .25f);
             _grapple.AddComponent<Rigidbody2D>();
             _grapple.rigidbody2D.isKinematic = true;
 
@@ -84,9 +84,7 @@ namespace Assets.Scripts
 
                 _points.Insert(_points.Count - 1, hit.point);
 
-                _line.SetVertexCount(_points.Count);
-                for(var i = 0; i < _points.Count; i++)
-                    _line.SetPosition(i, _points[i]);
+                UpdateLineDrawing();
 
                 _previousGrapple.transform.position = _grapple.transform.position;
                 _grapple.transform.position = hit.point;
@@ -114,10 +112,7 @@ namespace Assets.Scripts
                 {
                     _points.RemoveAt(_points.Count - 2);
 
-                    _line.SetVertexCount(_points.Count);
-                    for (var i = 0; i < _points.Count; i++)
-                        _line.SetPosition(i, _points[i]);
-                    _line.SetPosition(_points.Count - 1, transform.position);
+                    UpdateLineDrawing();
 
                     GetComponent<DistanceJoint2D>().distance += 
                         Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
@@ -129,6 +124,14 @@ namespace Assets.Scripts
                         _previousGrapple.transform.position = new Vector3(0,0,-1);
                 }
             }
+        }
+
+        private void UpdateLineDrawing()
+        {
+            _line.SetVertexCount(_points.Count);
+            for (var i = 0; i < _points.Count; i++)
+                _line.SetPosition(i, _points[i]);
+            _line.SetPosition(_points.Count - 1, transform.position);
         }
     }
 }
