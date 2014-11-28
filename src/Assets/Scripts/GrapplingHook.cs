@@ -12,11 +12,6 @@ namespace Assets.Scripts
         private LineRenderer _line;
         private GameObject _grapple;
 
-        // TODO: Switch to list of points
-        // TODO: Put new point when lose sight of first at second to last emelent in point list
-        // TODO: If you can see last two, then remove second to last points
-        // TODO: THE END
-
         void Start()
         {
             _line = new GameObject("Line").AddComponent<LineRenderer>();
@@ -59,11 +54,6 @@ namespace Assets.Scripts
 
                     _grappleLength = Vector3.Distance(transform.position, hit.point);
 
-//                    var joint = gameObject.AddComponent<DistanceJoint2D>();
-//                    joint.connectedBody = _grapple.rigidbody2D;
-//                    joint.distance = distance;
-//                    joint.maxDistanceOnly = true;
-
                     _grapple.transform.position = hit.point;
                 }
             }
@@ -74,13 +64,18 @@ namespace Assets.Scripts
             if(transform.rigidbody2D.velocity.y <= -1) transform.rigidbody2D.velocity = new Vector2(transform.rigidbody2D.velocity.x, -1);
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
 
-            if(Vector3.Distance(transform.position, _grapple.transform.position) > _grappleLength)
+            // stop player from moving too far away from grappeled point
+            if(Vector3.Distance(transform.position, _points[0]) > _grappleLength)
             {
-                transform.position -= (transform.position - _grapple.transform.position).normalized * (Vector3.Distance(transform.position, _grapple.transform.position) - _grappleLength);
+                transform.position -= 
+                    (transform.position - _grapple.transform.position).normalized * 
+                    (Vector3.Distance(transform.position, _grapple.transform.position) - _grappleLength);
             }
 
             if (hit.collider.gameObject != _grapple)
             {
+                // if you lose line of sight on the grappling hook, then add a new point to wrap around
+
                 _points.Insert(_points.Count - 1, hit.point);
 
                 _line.SetVertexCount(_points.Count);
@@ -89,14 +84,17 @@ namespace Assets.Scripts
 
                 _grapple.transform.position = hit.point;
             }
-            else if (Input.GetMouseButtonDown(0) || hit.collider == null)
+            else if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
             {
-//                Destroy(gameObject.GetComponent<DistanceJoint2D>());
+                // if you retract the grappling hook
+
                 _line.gameObject.SetActive(false);
                 _points.Clear();
             }
             else
             {
+                // always update the last points in the line to track player
+
                 _line.SetPosition(_points.Count - 1, transform.position);
             }
         }
