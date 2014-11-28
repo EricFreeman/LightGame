@@ -106,6 +106,7 @@ namespace Assets.Scripts
 
                 _line.SetPosition(_points.Count - 1, transform.position);
                 rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
+                GetComponent<DistanceJoint2D>().distance -= Input.GetAxisRaw("Vertical") * Time.deltaTime;
 
                 // if you can see previous point then unroll back to that point
                 if (_points.Count > 2 && hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
@@ -121,7 +122,7 @@ namespace Assets.Scripts
                     if(_points.Count > 2)
                         _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2);
                     else
-                        _previousGrapple.transform.position = new Vector3(0,0,-1);
+                        _previousGrapple.transform.position = new Vector3(0, 0, -1);
                 }
             }
         }
