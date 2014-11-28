@@ -11,7 +11,7 @@ namespace Assets.Scripts
         [HideInInspector]
         public bool IsEnabled
         {
-            get { return _points.Count > 0; }
+            get { return _points.Any(); }
         }
 
         private readonly List<Vector2> _points = new List<Vector2>();
@@ -29,7 +29,7 @@ namespace Assets.Scripts
             _line.renderer.material.color = Color.black;
 
             _grapple = new GameObject("Grapple");
-            _grapple.AddComponent<BoxCollider2D>().size = new Vector2(.25f, .25f);
+            _grapple.AddComponent<CircleCollider2D>().radius = .1f;
             _grapple.AddComponent<Rigidbody2D>();
             _grapple.rigidbody2D.isKinematic = true;
 
@@ -38,7 +38,7 @@ namespace Assets.Scripts
 
         void Update()
         {
-            if (_points.Count > 0) UpdateGrapple();
+            if (IsEnabled) UpdateGrapple();
             else CheckForGrapple();
         }
 
@@ -61,7 +61,6 @@ namespace Assets.Scripts
                     _line.gameObject.SetActive(true);
 
                     _points.Add(hit.point);
-                    _points.Add(transform.position);
 
                     _grapple.transform.position = hit.point;
 
@@ -78,11 +77,11 @@ namespace Assets.Scripts
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
             var hitPrev = Physics2D.Linecast(transform.position, _previousGrapple.transform.position, ~(1 << 8));
 
-            if (hit.collider.gameObject != _grapple)
+            if (hit.collider.gameObject != _grapple && hit.collider.gameObject != _previousGrapple)
             {
                 // if you lose line of sight on the grappling hook, then add a new point to wrap around
 
-                _points.Insert(_points.Count - 1, hit.point);
+                _points.Add(hit.point);
 
                 UpdateLineDrawing();
 
@@ -100,39 +99,53 @@ namespace Assets.Scripts
                 _line.gameObject.SetActive(false);
                 _points.Clear();
             }
+//            else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
+//            {
+//                RemoveLastCollider();
+//                // figure out why they are being put so close together
+//                // and maybe make it so last point ISN'T player in _points
+//            }
             else
             {
                 // always update the last points in the line to track player
 
-                _line.SetPosition(_points.Count - 1, transform.position);
+                _line.SetPosition(_points.Count, transform.position);
                 rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
                 GetComponent<DistanceJoint2D>().distance -= Input.GetAxisRaw("Vertical") * Time.deltaTime;
 
                 // if you can see previous point then unroll back to that point
-                if (_points.Count > 2 && hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
+                if (hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
                 {
-                    _points.RemoveAt(_points.Count - 2);
-
-                    UpdateLineDrawing();
-
-                    GetComponent<DistanceJoint2D>().distance += 
-                        Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
-                    _grapple.transform.position = _previousGrapple.transform.position;
-
-                    if(_points.Count > 2)
-                        _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2);
-                    else
-                        _previousGrapple.transform.position = new Vector3(0, 0, -1);
+                    RemoveLastCollider();
                 }
+            }
+        }
+
+        private void RemoveLastCollider()
+        {
+            if (_points.Count > 1)
+            {
+                _points.RemoveAt(_points.Count - 1);
+
+                UpdateLineDrawing();
+
+                GetComponent<DistanceJoint2D>().distance +=
+                    Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
+                _grapple.transform.position = _previousGrapple.transform.position;
+
+                if (_points.Count > 1)
+                    _previousGrapple.transform.position = _points.Last();
+                else
+                    _previousGrapple.transform.position = new Vector3(0, 0, -1);
             }
         }
 
         private void UpdateLineDrawing()
         {
-            _line.SetVertexCount(_points.Count);
+            _line.SetVertexCount(_points.Count + 1);
             for (var i = 0; i < _points.Count; i++)
                 _line.SetPosition(i, _points[i]);
-            _line.SetPosition(_points.Count - 1, transform.position);
+            _line.SetPosition(_points.Count, transform.position);
         }
     }
 }
