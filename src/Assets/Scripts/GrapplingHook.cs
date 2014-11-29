@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Util;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -99,12 +100,12 @@ namespace Assets.Scripts
                 _line.gameObject.SetActive(false);
                 _points.Clear();
             }
-//            else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
-//            {
-//                RemoveLastCollider();
-//                // figure out why they are being put so close together
-//                // and maybe make it so last point ISN'T player in _points
-//            }
+            else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
+            {
+                RemoveLastCollider();
+                // figure out why they are being put so close together
+                // and maybe make it so last point ISN'T player in _points
+            }
             else
             {
                 // always update the last points in the line to track player
@@ -115,15 +116,13 @@ namespace Assets.Scripts
 
                 // if you can see previous point then unroll back to that point
                 if (hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
-                {
                     RemoveLastCollider();
-                }
             }
         }
 
         private void RemoveLastCollider()
         {
-            if (_points.Count > 2)
+            if (_points.Count > 1)
             {
                 _points.RemoveAt(_points.Count - 1);
 
@@ -132,12 +131,12 @@ namespace Assets.Scripts
                 GetComponent<DistanceJoint2D>().distance +=
                     Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
                 _grapple.transform.position = _previousGrapple.transform.position;
-
-                if (_points.Count > 1)
-                    _previousGrapple.transform.position = _points.Last();
-                else
-                    _previousGrapple.transform.position = new Vector3(0, 0, -1);
             }
+
+            if (_points.Count > 1)
+                _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2);
+            else
+                _previousGrapple.transform.position = new Vector3(0, 0, -1);
         }
 
         private void UpdateLineDrawing()
