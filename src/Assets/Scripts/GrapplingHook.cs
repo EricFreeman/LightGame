@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.Util;
 using UnityEngine;
 
 namespace Assets.Scripts
 {
     public class GrapplingHook : MonoBehaviour
     {
-        public float Length = 3;
+        public float Length = 4;
 
         [HideInInspector]
         public bool IsEnabled
@@ -99,6 +98,8 @@ namespace Assets.Scripts
                 Destroy(gameObject.GetComponent<DistanceJoint2D>());
                 _line.gameObject.SetActive(false);
                 _points.Clear();
+                _grapple.transform.position = new Vector3(0, 0, -1);
+                _previousGrapple.transform.position = new Vector3(0, 0, -1);
             }
             else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
             {
