@@ -100,6 +100,9 @@ namespace Assets.Scripts
                 _points.Clear();
                 _grapple.transform.position = new Vector3(0, 0, -1);
                 _previousGrapple.transform.position = new Vector3(0, 0, -1);
+
+                if(Input.GetKeyDown(KeyCode.Space))
+                    rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 3);
             }
             else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
             {
