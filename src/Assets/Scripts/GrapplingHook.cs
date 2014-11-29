@@ -123,7 +123,7 @@ namespace Assets.Scripts
 
         private void RemoveLastCollider()
         {
-            if (_points.Count > 1)
+            if (_points.Count > 2)
             {
                 _points.RemoveAt(_points.Count - 1);
 
