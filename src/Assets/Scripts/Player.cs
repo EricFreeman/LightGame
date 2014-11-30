@@ -117,7 +117,7 @@ namespace Assets.Scripts
         {
             if (!_isOnRope) transform.rotation = new Quaternion();
             if (col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
-            if (col.gameObject.tag == "Floor") SpawnDust(true);
+            if (col.gameObject.tag == "Floor" && IsGrounded()) SpawnDust(true);
             if (col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
         }
 
@@ -270,9 +270,9 @@ namespace Assets.Scripts
             // This will account for being slightly over a ledge or something.
             RaycastHit2D[] hits =
             {
-                Physics2D.Raycast(transform.position - new Vector3(-.15f, .18f), -Vector2.up, .05f),
+                Physics2D.Raycast(transform.position - new Vector3(-.12f, .18f), -Vector2.up, .05f),
                 Physics2D.Raycast(transform.position - new Vector3(0, .18f), -Vector2.up, .05f),
-                Physics2D.Raycast(transform.position - new Vector3(.15f, .18f), -Vector2.up, .05f)
+                Physics2D.Raycast(transform.position - new Vector3(.12f, .18f), -Vector2.up, .05f)
             };
             return hits.Where(x => x.collider != null && x.collider.tag != "Player");
         }
