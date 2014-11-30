@@ -60,7 +60,7 @@ namespace Assets.Scripts
         private PlayerState DeterminePlayerState()
         {
             if (_isDead) return PlayerState.Dead;
-            if (_hook.IsEnabled) return PlayerState.Nothing;
+            if (_hook.IsEnabled && !IsGrounded()) return PlayerState.Nothing;
             if (_isOnRope) return PlayerState.OnRope;
 
             return PlayerState.Default;
