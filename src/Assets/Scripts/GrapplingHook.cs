@@ -14,7 +14,7 @@ namespace Assets.Scripts
             get { return _points.Any(); }
         }
 
-        private readonly List<Vector2> _points = new List<Vector2>();
+        private readonly List<GameObject> _points = new List<GameObject>();
         private LineRenderer _line;
         private GameObject _grapple;
         private GameObject _previousGrapple;
@@ -60,7 +60,7 @@ namespace Assets.Scripts
                     _line.SetPosition(1, transform.position);
                     _line.gameObject.SetActive(true);
 
-                    _points.Add(hit.point);
+                    _points.Add(CreateGrapplePoint(hit));
 
                     _grapple.transform.position = hit.point;
 
@@ -72,6 +72,14 @@ namespace Assets.Scripts
             }
         }
 
+        private GameObject CreateGrapplePoint(RaycastHit2D hit)
+        {
+            var p = new GameObject("GrapplePoint");
+            p.transform.SetParent(hit.collider.transform);
+            p.transform.position = hit.point;
+            return p;
+        }
+
         private void UpdateGrapple()
         {
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
@@ -81,7 +89,7 @@ namespace Assets.Scripts
             {
                 // if you lose line of sight on the grappling hook, then add a new point to wrap around
 
-                _points.Add(hit.point);
+                _points.Add(CreateGrapplePoint(hit));
 
                 UpdateLineDrawing();
 
@@ -97,6 +105,7 @@ namespace Assets.Scripts
 
                 Destroy(gameObject.GetComponent<DistanceJoint2D>());
                 _line.gameObject.SetActive(false);
+                _points.ForEach(Destroy);
                 _points.Clear();
                 _grapple.transform.position = new Vector3(0, 0, -1);
                 _previousGrapple.transform.position = new Vector3(0, 0, -1);
@@ -128,6 +137,7 @@ namespace Assets.Scripts
         {
             if (_points.Count > 1)
             {
+                Destroy(_points[_points.Count - 1]);
                 _points.RemoveAt(_points.Count - 1);
 
                 UpdateLineDrawing();
@@ -138,7 +148,7 @@ namespace Assets.Scripts
             }
 
             if (_points.Count > 1)
-                _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2);
+                _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2).transform.position;
             else
                 _previousGrapple.transform.position = new Vector3(0, 0, -1);
         }
@@ -147,7 +157,7 @@ namespace Assets.Scripts
         {
             _line.SetVertexCount(_points.Count + 1);
             for (var i = 0; i < _points.Count; i++)
-                _line.SetPosition(i, _points[i]);
+                _line.SetPosition(i, _points[i].transform.position);
             _line.SetPosition(_points.Count, transform.position);
         }
     }
