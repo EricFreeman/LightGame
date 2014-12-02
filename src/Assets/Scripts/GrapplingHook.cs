@@ -63,6 +63,7 @@ namespace Assets.Scripts
                     _points.Add(CreateGrapplePoint(hit));
 
                     _grapple.transform.position = hit.point;
+                    _grapple.transform.SetParent(hit.collider.transform);
 
                     var joint = gameObject.AddComponent<DistanceJoint2D>();
                     joint.connectedBody = _grapple.GetComponent<Rigidbody2D>();
@@ -76,12 +77,14 @@ namespace Assets.Scripts
         {
             var p = new GameObject("GrapplePoint");
             p.transform.SetParent(hit.collider.transform);
+            p.transform.parent = hit.collider.transform;
             p.transform.position = hit.point;
             return p;
         }
 
         private void UpdateGrapple()
         {
+            UpdateLineDrawing();
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
             var hitPrev = Physics2D.Linecast(transform.position, _previousGrapple.transform.position, ~(1 << 8));
 
@@ -95,6 +98,7 @@ namespace Assets.Scripts
 
                 _previousGrapple.transform.position = _grapple.transform.position;
                 _grapple.transform.position = hit.point;
+                _grapple.transform.SetParent(hit.collider.transform);
 
                 GetComponent<DistanceJoint2D>().distance -=
                         Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
@@ -113,7 +117,7 @@ namespace Assets.Scripts
                 if(Input.GetKeyDown(KeyCode.Space))
                     rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 3);
             }
-            else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .05f)
+            else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .1f)
             {
                 RemoveLastCollider();
                 // figure out why they are being put so close together
