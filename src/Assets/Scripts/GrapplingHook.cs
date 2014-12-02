@@ -85,6 +85,8 @@ namespace Assets.Scripts
         private void UpdateGrapple()
         {
             UpdateLineDrawing();
+            UpdateDistance();
+
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
             var hitPrev = Physics2D.Linecast(transform.position, _previousGrapple.transform.position, ~(1 << 8));
 
@@ -97,6 +99,7 @@ namespace Assets.Scripts
                 UpdateLineDrawing();
 
                 _previousGrapple.transform.position = _grapple.transform.position;
+                _previousGrapple.transform.parent = _grapple.transform.parent;
                 _grapple.transform.position = hit.point;
                 _grapple.transform.SetParent(hit.collider.transform);
 
@@ -113,6 +116,7 @@ namespace Assets.Scripts
                 _points.Clear();
                 _grapple.transform.position = new Vector3(0, 0, -1);
                 _previousGrapple.transform.position = new Vector3(0, 0, -1);
+                _previousDistance = -1;
 
                 if(Input.GetKeyDown(KeyCode.Space))
                     rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 3);
@@ -149,6 +153,7 @@ namespace Assets.Scripts
                 GetComponent<DistanceJoint2D>().distance +=
                     Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
                 _grapple.transform.position = _previousGrapple.transform.position;
+                _grapple.transform.SetParent(_previousGrapple.transform.parent);
             }
 
             if (_points.Count > 1)
@@ -163,6 +168,25 @@ namespace Assets.Scripts
             for (var i = 0; i < _points.Count; i++)
                 _line.SetPosition(i, _points[i].transform.position);
             _line.SetPosition(_points.Count, transform.position);
+        }
+
+        private float _previousDistance = -1;
+        private void UpdateDistance()
+        {
+            var distance = 0f;
+
+            for (var i = 1; i < _points.Count; i++)
+            {
+                distance += Vector3.Distance(_points[i - 1].transform.position, _points[i].transform.position);
+            }
+            distance += Vector3.Distance(_points.Last().transform.position, transform.position);
+
+            if (_previousDistance > 0)
+            {
+                GetComponent<DistanceJoint2D>().distance += _previousDistance - distance;
+            }
+
+            _previousDistance = distance;
         }
     }
 }
