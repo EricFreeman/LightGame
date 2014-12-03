@@ -18,6 +18,7 @@ namespace Assets.Scripts
         private LineRenderer _line;
         private GameObject _grapple;
         private GameObject _previousGrapple;
+        private float _previousDistance = -1;
 
         void Start()
         {
@@ -85,7 +86,6 @@ namespace Assets.Scripts
         private void UpdateGrapple()
         {
             UpdateLineDrawing();
-            UpdateDistance();
 
             var hit = Physics2D.Linecast(transform.position, _grapple.transform.position, ~(1 << 8));
             var hitPrev = Physics2D.Linecast(transform.position, _previousGrapple.transform.position, ~(1 << 8));
@@ -102,6 +102,7 @@ namespace Assets.Scripts
                 _previousGrapple.transform.parent = _grapple.transform.parent;
                 _grapple.transform.position = hit.point;
                 _grapple.transform.SetParent(hit.collider.transform);
+                _previousDistance = -1;
 
                 GetComponent<DistanceJoint2D>().distance -=
                         Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
@@ -124,8 +125,6 @@ namespace Assets.Scripts
             else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .1f)
             {
                 RemoveLastCollider();
-                // figure out why they are being put so close together
-                // and maybe make it so last point ISN'T player in _points
             }
             else
             {
@@ -139,6 +138,8 @@ namespace Assets.Scripts
                 if (hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
                     RemoveLastCollider();
             }
+
+            UpdateDistance();
         }
 
         private void RemoveLastCollider()
@@ -160,6 +161,8 @@ namespace Assets.Scripts
                 _previousGrapple.transform.position = _points.ElementAt(_points.Count - 2).transform.position;
             else
                 _previousGrapple.transform.position = new Vector3(0, 0, -1);
+
+            _previousDistance = -1;
         }
 
         private void UpdateLineDrawing()
@@ -170,21 +173,15 @@ namespace Assets.Scripts
             _line.SetPosition(_points.Count, transform.position);
         }
 
-        private float _previousDistance = -1;
         private void UpdateDistance()
         {
             var distance = 0f;
 
             for (var i = 1; i < _points.Count; i++)
-            {
                 distance += Vector3.Distance(_points[i - 1].transform.position, _points[i].transform.position);
-            }
-            distance += Vector3.Distance(_points.Last().transform.position, transform.position);
 
             if (_previousDistance > 0)
-            {
                 GetComponent<DistanceJoint2D>().distance += _previousDistance - distance;
-            }
 
             _previousDistance = distance;
         }
