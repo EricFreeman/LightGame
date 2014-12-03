@@ -111,13 +111,7 @@ namespace Assets.Scripts
             {
                 // if you retract the grappling hook
 
-                Destroy(gameObject.GetComponent<DistanceJoint2D>());
-                _line.gameObject.SetActive(false);
-                _points.ForEach(Destroy);
-                _points.Clear();
-                _grapple.transform.position = new Vector3(0, 0, -1);
-                _previousGrapple.transform.position = new Vector3(0, 0, -1);
-                _previousDistance = -1;
+                RetractRope();
 
                 if(Input.GetKeyDown(KeyCode.Space))
                     rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 3);
@@ -140,6 +134,17 @@ namespace Assets.Scripts
             }
 
             UpdateDistance();
+        }
+
+        private void RetractRope()
+        {
+            Destroy(gameObject.GetComponent<DistanceJoint2D>());
+            _line.gameObject.SetActive(false);
+            _points.ForEach(Destroy);
+            _points.Clear();
+            _grapple.transform.position = new Vector3(0, 0, -1);
+            _previousGrapple.transform.position = new Vector3(0, 0, -1);
+            _previousDistance = -1;
         }
 
         private void RemoveLastCollider()
@@ -175,15 +180,20 @@ namespace Assets.Scripts
 
         private void UpdateDistance()
         {
+            if(_points.Count == 0) return;
+
             var distance = 0f;
 
             for (var i = 1; i < _points.Count; i++)
                 distance += Vector3.Distance(_points[i - 1].transform.position, _points[i].transform.position);
+            distance += Vector3.Distance(_points[_points.Count - 1].transform.position, transform.position);
 
             if (_previousDistance > 0)
                 GetComponent<DistanceJoint2D>().distance += _previousDistance - distance;
 
             _previousDistance = distance;
+
+            if(distance > Length) RetractRope();
         }
     }
 }
