@@ -64,7 +64,7 @@ namespace Assets.Scripts
                     _points.Add(CreateGrapplePoint(hit));
 
                     _grapple.transform.position = hit.point;
-                    _grapple.transform.SetParent(hit.collider.transform);
+                    SetParent(_grapple.transform, hit.collider.transform);
 
                     var joint = gameObject.AddComponent<DistanceJoint2D>();
                     joint.connectedBody = _grapple.GetComponent<Rigidbody2D>();
@@ -77,8 +77,8 @@ namespace Assets.Scripts
         private GameObject CreateGrapplePoint(RaycastHit2D hit)
         {
             var p = new GameObject("GrapplePoint");
-            p.transform.SetParent(hit.collider.transform);
-            p.transform.parent = hit.collider.transform;
+            SetParent(p.transform, hit.collider.transform);
+//            p.transform.parent = hit.collider.transform;
             p.transform.position = hit.point;
             return p;
         }
@@ -99,9 +99,9 @@ namespace Assets.Scripts
                 UpdateLineDrawing();
 
                 _previousGrapple.transform.position = _grapple.transform.position;
-                _previousGrapple.transform.parent = _grapple.transform.parent;
+                SetParent(_previousGrapple.transform, _grapple.transform.parent);
                 _grapple.transform.position = hit.point;
-                _grapple.transform.SetParent(hit.collider.transform);
+                SetParent(_grapple.transform, hit.collider.transform);
                 _previousDistance = -1;
 
                 GetComponent<DistanceJoint2D>().distance -=
@@ -159,7 +159,7 @@ namespace Assets.Scripts
                 GetComponent<DistanceJoint2D>().distance +=
                     Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
                 _grapple.transform.position = _previousGrapple.transform.position;
-                _grapple.transform.SetParent(_previousGrapple.transform.parent);
+                SetParent(_grapple.transform, _previousGrapple.transform.parent);
             }
 
             if (_points.Count > 1)
@@ -194,6 +194,13 @@ namespace Assets.Scripts
             _previousDistance = distance;
 
             if(distance > Length) RetractRope();
+        }
+
+        private void SetParent(Transform child, Transform parent)
+        {
+            child.SetParent(parent);
+            if (parent != null)
+                child.localScale = new Vector3(1 / parent.localScale.x, 1 / parent.localScale.y, 1 / parent.localScale.z);
         }
     }
 }
