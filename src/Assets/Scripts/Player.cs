@@ -24,11 +24,9 @@ namespace Assets.Scripts
         private GameObject _prevMiddle;
 
         public GameObject Dust;
-        public GameObject Blood;
 
         private int _dustCounter;
         private bool _isDead;
-        private int _remainingBlood = 10;
 
         private GameObject _moveTowardsCenter;
         private bool _centerPlayer;
@@ -134,16 +132,6 @@ namespace Assets.Scripts
 
         private void DeadAction()
         {
-            if (_remainingBlood-- > 0)
-            {
-                for (var i = 0; i < 5; i++)
-                {
-                    var b = (GameObject)Instantiate(Blood);
-                    b.transform.position = transform.position;
-                    b.rigidbody2D.AddForce(new Vector2(Random.Range(-1f, 1f), Random.Range(1f, 2f)) * 50);
-                }
-            }
-
             if(Input.anyKeyDown) Application.LoadLevel(Application.loadedLevel);
         }
 

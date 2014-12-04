@@ -35,6 +35,7 @@ namespace Assets.Scripts
             _grapple.rigidbody2D.isKinematic = true;
 
             _previousGrapple = (GameObject)Instantiate(_grapple);
+            _previousGrapple.name = "Previous Grapple";
         }
 
         void Update()
@@ -78,7 +79,6 @@ namespace Assets.Scripts
         {
             var p = new GameObject("GrapplePoint");
             SetParent(p.transform, hit.collider.transform);
-//            p.transform.parent = hit.collider.transform;
             p.transform.position = hit.point;
             return p;
         }
