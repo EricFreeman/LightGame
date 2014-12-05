@@ -12,7 +12,7 @@ namespace Assets.Scripts
         public bool BothSidesConnected;
 
         // TODO: Figure this out from gameobject and not hardcoded
-        private const float Size = .12f;
+        private const float Size = .115f;
 
         private int SegmentCount
         {
@@ -32,8 +32,8 @@ namespace Assets.Scripts
                 if (i == 0 || (BothSidesConnected && i == SegmentCount - 1)) section.rigidbody2D.isKinematic = true;
                 if(i != 0) section.GetComponent<HingeJoint2D>().connectedBody = _ropeSegments[i - 1].rigidbody2D;
 
-                section.transform.position = Vector3.Lerp(StartPosition, EndPosition, Size * i);
                 section.transform.SetParent(transform);
+                section.transform.localPosition = Vector3.Lerp(StartPosition, EndPosition, Size * i);
                 _ropeSegments.Add(section);
             }
         }
