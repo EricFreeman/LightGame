@@ -222,19 +222,18 @@ namespace Assets.Scripts
                     if (obj != null)
                     {
                         _dragObject = obj.gameObject;
-                        _dragOffset = (transform.position - _dragObject.transform.position).x > 0
-                            ? new Vector3(.32f, 0, 0)
-                            : new Vector3(-.32f, 0, 0);
+
+                        var joint = gameObject.AddComponent<DistanceJoint2D>();
+                        var distance = Vector2.Distance(_dragObject.transform.position, transform.position);
+                        joint.connectedBody = _dragObject.rigidbody2D;
+                        joint.distance = distance;
                     }
                 }
-                else
-                {
-                    _dragObject.transform.position = transform.position - _dragOffset;
-                }
             }
-            else
+            else if(_dragObject != null)
             {
                 _dragObject = null;
+                Destroy(gameObject.GetComponent<DistanceJoint2D>());
             }
         }
 
