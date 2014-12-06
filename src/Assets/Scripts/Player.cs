@@ -30,9 +30,6 @@ namespace Assets.Scripts
         private GameObject _moveTowardsCenter;
         private bool _centerPlayer;
 
-        private GameObject _dragObject;
-        public Vector3 _dragOffset;
-
         public List<AudioClip> Footsteps;
 
         private readonly Dictionary<PlayerState, Action> _stateActions = new Dictionary<PlayerState, Action>();
@@ -194,9 +191,6 @@ namespace Assets.Scripts
             if (IsGrounded() && Input.GetKeyDown(KeyCode.Space))
                 Jump();
 
-            // Update Dragging
-            DragObject();
-
             // Dust particles from running
             if (Mathf.Abs(rigidbody2D.velocity.x) > 0)
                 SpawnDust();
@@ -205,37 +199,6 @@ namespace Assets.Scripts
         }
 
         private void NothingAction() { }
-
-        private void DragObject()
-        {
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                if (_dragObject == null)
-                {
-                    var left = Physics2D.Raycast(transform.position - new Vector3(.16f, 0, 0), -Vector2.right, .01f);
-                    var right = Physics2D.Raycast(transform.position + new Vector3(.16f, 0, 0), Vector2.right, .01f);
-
-                    var obj = (left.collider != null && left.collider.tag == "Draggable")
-                        ? left.collider
-                        : (right.collider != null && right.collider.tag == "Draggable") ? right.collider : null;
-
-                    if (obj != null)
-                    {
-                        _dragObject = obj.gameObject;
-
-                        var joint = gameObject.AddComponent<DistanceJoint2D>();
-                        var distance = Vector2.Distance(_dragObject.transform.position, transform.position);
-                        joint.connectedBody = _dragObject.rigidbody2D;
-                        joint.distance = distance;
-                    }
-                }
-            }
-            else if(_dragObject != null)
-            {
-                _dragObject = null;
-                Destroy(gameObject.GetComponent<DistanceJoint2D>());
-            }
-        }
 
         private void Jump()
         {
