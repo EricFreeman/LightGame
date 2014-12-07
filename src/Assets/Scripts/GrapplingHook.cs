@@ -111,10 +111,11 @@ namespace Assets.Scripts
             {
                 // if you retract the grappling hook
 
-                RetractRope();
-
-                if(Input.GetKeyDown(KeyCode.Space))
+                // jump off
+                if (Input.GetKeyDown(KeyCode.Space) && transform.position.y < _grapple.transform.position.y)
                     rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 3);
+
+                RetractRope();
             }
             else if (Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position) <= .1f)
             {
