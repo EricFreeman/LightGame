@@ -11,24 +11,13 @@ namespace Assets.Scripts
         public float Speed = 5;
         public float JumpForce = 20;
 
-        public GrapplingHook _hook;
-
-        private bool _isOnRope
-        {
-            get { return _ropeSegments.Any(); }
-        }
-        private readonly List<GameObject> _ropeSegments = new List<GameObject>();
-
-        private Vector3 _prevPosition;
-        private GameObject _prevMiddle;
+        public GrapplingHook Hook;
+        public Climbing Climbing;
 
         public GameObject Dust;
 
         private int _dustCounter;
         private bool _isDead;
-
-        private GameObject _moveTowardsCenter;
-        private bool _centerPlayer;
 
         public List<AudioClip> Footsteps;
 
@@ -37,11 +26,11 @@ namespace Assets.Scripts
         void Start()
         {
             _stateActions.Add(PlayerState.Default, DefaultAction);
-            _stateActions.Add(PlayerState.OnRope, RopeAction);
             _stateActions.Add(PlayerState.Dead, DeadAction);
             _stateActions.Add(PlayerState.Nothing, NothingAction);
 
-            _hook = GetComponent<GrapplingHook>();
+            Hook = GetComponent<GrapplingHook>();
+            Climbing = GetComponent<Climbing>();
 
             if (SpawnPoint.Point.HasValue) transform.position = SpawnPoint.Point.Value;
         }
@@ -54,17 +43,10 @@ namespace Assets.Scripts
         private PlayerState DeterminePlayerState()
         {
             if (_isDead) return PlayerState.Dead;
-            if (_hook.IsEnabled && !IsGrounded()) return PlayerState.Nothing;
-            if (_isOnRope) return PlayerState.OnRope;
+            if (Hook.IsEnabled && !IsGrounded()) return PlayerState.Nothing;
+            if (Climbing.IsOnRope) return PlayerState.Nothing;
 
             return PlayerState.Default;
-        }
-
-        private bool CanMoveUp(GameObject middle)
-        {
-            if (Input.GetAxisRaw("Vertical") > 0) return true;
-
-            return _ropeSegments.Count > 2;
         }
 
         private void OnTriggerEnter2D(Collider2D col)
@@ -74,42 +56,13 @@ namespace Assets.Scripts
                 _isDead = true;
                 rigidbody2D.gravityScale = 0;
                 rigidbody2D.velocity = Vector2.zero;
-                _ropeSegments.Clear();
-            }
-            else if (col.tag == "Rope")
-            {
-                if (_ropeSegments.Count() == 1 && col.gameObject != _moveTowardsCenter)
-                {
-                    _moveTowardsCenter = null;
-                    _ropeSegments.Add(col.gameObject);
-                }
-            }
-        }
-
-        private void OnTriggerExit2D(Collider2D col)
-        {
-            if (col.tag == "Rope")
-            {
-                if (_ropeSegments.Count > 1)
-                    _ropeSegments.Remove(col.gameObject);
-                else if (_ropeSegments.Count == 1)
-                    _moveTowardsCenter = _ropeSegments[0].gameObject;
-            }
-        }
-
-        private void OnTriggerStay2D(Collider2D col)
-        {
-            if ((_isOnRope || Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) && col.tag == "Rope")
-            {
-                if (!_isOnRope) _centerPlayer = true;
-                if (!_ropeSegments.Contains(col.gameObject))
-                    _ropeSegments.Add(col.gameObject);
+                Climbing.Clear();
             }
         }
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if (!_isOnRope) transform.rotation = new Quaternion();
+            if (!Climbing.IsOnRope) transform.rotation = new Quaternion();
             if (col.gameObject.tag == "Bouncy") rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, 7.5f);
             if (col.gameObject.tag == "Floor" && IsGrounded()) SpawnDust(true);
             if (col.gameObject.tag == "MovingPlatform") transform.SetParent(col.transform);
@@ -129,55 +82,6 @@ namespace Assets.Scripts
         private void DeadAction()
         {
             if(Input.anyKeyDown) Application.LoadLevel(Application.loadedLevel);
-        }
-
-        private void RopeAction()
-        {
-            rigidbody2D.gravityScale = 0;
-
-            // Jump off rope
-            if (_isOnRope && Input.GetKeyDown(KeyCode.Space))
-                Jump();
-
-            // Grab the middle rope segment player collides with since this would be closest to player's center
-            var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
-            GameObject middle = null;
-            if (all.Any()) middle = _ropeSegments[_ropeSegments.Count / 2];
-
-            if (middle != null)
-            {
-                if (_centerPlayer)
-                {
-                    transform.position = new Vector3(middle.transform.position.x, transform.position.y, transform.position.z);
-                    _centerPlayer = false;
-                }
-
-                // Climb rope
-                rigidbody2D.velocity = CanMoveUp(middle) ?
-                    new Vector2(
-                        middle.transform.up.x * Input.GetAxisRaw("Vertical"),
-                        Input.GetAxisRaw("Vertical") * Speed * middle.transform.up.y) :
-                    new Vector2(rigidbody2D.velocity.x, 0);
-
-                // Swing on rope
-                middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal") * 5, 0));
-                transform.rotation = middle.transform.rotation;
-
-                // Move player with swing of rope
-                if (_prevMiddle == middle) transform.position += middle.transform.position - _prevPosition;
-                _prevMiddle = middle;
-                _prevPosition = middle.transform.position;
-            }
-
-            // Move towards middle of rope if you've somehow moved off of it
-            if (_moveTowardsCenter != null)
-            {
-                transform.position = Vector3.MoveTowards(transform.position,
-                    _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up * .24f, .1f);
-
-                if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
-                    _moveTowardsCenter = null;
-            }
         }
 
         private void DefaultAction()
@@ -205,7 +109,7 @@ namespace Assets.Scripts
             transform.SetParent(null);
             rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, JumpForce);
             rigidbody2D.gravityScale = 1;
-            _ropeSegments.Clear();
+            Climbing.Clear();
         }
 
         private bool IsGrounded()
@@ -250,7 +154,6 @@ namespace Assets.Scripts
     public enum PlayerState
     {
         Default,
-        OnRope,
         Dead,
         Nothing
     }
