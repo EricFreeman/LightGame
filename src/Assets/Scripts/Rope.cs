@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -10,6 +11,8 @@ namespace Assets.Scripts
         public Vector3 EndPosition;
         public GameObject RopeSection;
         public bool BothSidesConnected;
+
+        public GameObject ConnectedObject;
 
         // TODO: Figure this out from gameobject and not hardcoded
         private const float Size = .115f;
@@ -31,6 +34,13 @@ namespace Assets.Scripts
 
                 if (i == 0 || (BothSidesConnected && i == SegmentCount - 1)) section.rigidbody2D.isKinematic = true;
                 if(i != 0) section.GetComponent<HingeJoint2D>().connectedBody = _ropeSegments[i - 1].rigidbody2D;
+                if (ConnectedObject != null && i == SegmentCount - 1)
+                {
+                    var hinge = ConnectedObject.AddComponent<HingeJoint2D>();
+                    hinge.connectedBody = section.rigidbody2D;
+                    hinge.useLimits = true;
+                    hinge.limits = new JointAngleLimits2D { min = 0, max = 0 };
+                }
 
                 section.transform.SetParent(transform);
                 section.transform.localPosition = Vector3.Lerp(StartPosition, EndPosition, Size * i);
