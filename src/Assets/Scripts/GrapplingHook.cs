@@ -19,6 +19,7 @@ namespace Assets.Scripts
         private GameObject _grapple;
         private GameObject _previousGrapple;
         private float _previousDistance = -1;
+        private DistanceJoint2D _joint;
 
         void Start()
         {
@@ -36,6 +37,9 @@ namespace Assets.Scripts
 
             _previousGrapple = (GameObject)Instantiate(_grapple);
             _previousGrapple.name = "Previous Grapple";
+
+            _joint = gameObject.AddComponent<DistanceJoint2D>();
+            _joint.enabled = false;
         }
 
         void Update()
@@ -67,10 +71,10 @@ namespace Assets.Scripts
                     _grapple.transform.position = hit.point;
                     SetParent(_grapple.transform, hit.collider.transform);
 
-                    var joint = gameObject.AddComponent<DistanceJoint2D>();
-                    joint.connectedBody = _grapple.GetComponent<Rigidbody2D>();
-                    joint.distance = Vector3.Distance(hit.point, transform.position);
-                    joint.maxDistanceOnly = true;
+                    _joint.enabled = true;
+                    _joint.connectedBody = _grapple.GetComponent<Rigidbody2D>();
+                    _joint.distance = Vector3.Distance(hit.point, transform.position);
+                    _joint.maxDistanceOnly = true;
                 }
             }
         }
@@ -104,8 +108,7 @@ namespace Assets.Scripts
                 SetParent(_grapple.transform, hit.collider.transform);
                 _previousDistance = -1;
 
-                GetComponent<DistanceJoint2D>().distance -=
-                        Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
+                _joint.distance -= Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
             }
             else if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
             {
@@ -127,7 +130,7 @@ namespace Assets.Scripts
 
                 _line.SetPosition(_points.Count, transform.position);
                 rigidbody2D.AddForce(Vector3.right * Input.GetAxisRaw("Horizontal") * 25);
-                GetComponent<DistanceJoint2D>().distance -= Input.GetAxisRaw("Vertical") * Time.deltaTime;
+                _joint.distance -= Input.GetAxisRaw("Vertical") * Time.deltaTime;
 
                 // if you can see previous point then unroll back to that point
                 if (hitPrev.collider != null && hitPrev.transform == _previousGrapple.transform)
@@ -139,7 +142,7 @@ namespace Assets.Scripts
 
         private void RetractRope()
         {
-            Destroy(gameObject.GetComponent<DistanceJoint2D>());
+            _joint.enabled = false;
             _line.gameObject.SetActive(false);
             _points.ForEach(Destroy);
             _points.Clear();
@@ -157,8 +160,7 @@ namespace Assets.Scripts
 
                 UpdateLineDrawing();
 
-                GetComponent<DistanceJoint2D>().distance +=
-                    Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
+                _joint.distance += Vector3.Distance(_grapple.transform.position, _previousGrapple.transform.position);
                 _grapple.transform.position = _previousGrapple.transform.position;
                 SetParent(_grapple.transform, _previousGrapple.transform.parent);
             }
@@ -190,7 +192,7 @@ namespace Assets.Scripts
             distance += Vector3.Distance(_points[_points.Count - 1].transform.position, transform.position);
 
             if (_previousDistance > 0)
-                GetComponent<DistanceJoint2D>().distance += _previousDistance - distance;
+                _joint.distance += _previousDistance - distance;
 
             _previousDistance = distance;
 
