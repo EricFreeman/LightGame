@@ -15,7 +15,6 @@ namespace Assets.Scripts
         }
         private readonly List<GameObject> _ropeSegments = new List<GameObject>();
 
-        private Vector3 _prevPosition;
         private GameObject _prevMiddle;
 
         private GameObject _moveTowardsCenter;
@@ -46,20 +45,20 @@ namespace Assets.Scripts
                     }
 
                     // Climb rope
-                    rigidbody2D.velocity = CanMoveUp(middle)
-                        ? new Vector2(
-                            middle.transform.up.x*Input.GetAxisRaw("Vertical"),
-                            Input.GetAxisRaw("Vertical")*Speed*middle.transform.up.y)
-                        : new Vector2(rigidbody2D.velocity.x, 0);
+                    rigidbody2D.velocity = middle.rigidbody2D.velocity + 
+                        (CanMoveUp(middle)
+                            ? new Vector2(
+                                middle.transform.up.x*Input.GetAxisRaw("Vertical"),
+                                Input.GetAxisRaw("Vertical")*Speed*middle.transform.up.y)
+                            : new Vector2(rigidbody2D.velocity.x, 0));
 
                     // Swing on rope
                     middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal")*5, 0));
                     transform.rotation = middle.transform.rotation;
 
                     // Move player with swing of rope
-                    if (_prevMiddle == middle) transform.position += middle.transform.position - _prevPosition;
+                    if (_prevMiddle == middle) transform.position = Vector3.MoveTowards(transform.position, middle.transform.position, .01f);
                     _prevMiddle = middle;
-                    _prevPosition = middle.transform.position;
                 }
 
                 // Move towards middle of rope if you've somehow moved off of it
@@ -68,7 +67,7 @@ namespace Assets.Scripts
                     transform.position = Vector3.MoveTowards(transform.position,
                         _moveTowardsCenter.transform.position - _moveTowardsCenter.transform.up*.24f, .1f);
 
-                    if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < 1)
+                    if (Vector3.Distance(transform.position, _moveTowardsCenter.transform.position) < .2f)
                         _moveTowardsCenter = null;
                 }
             }
@@ -105,10 +104,7 @@ namespace Assets.Scripts
         {
             if (col.tag == "Rope")
             {
-                if (_ropeSegments.Count > 1)
-                    _ropeSegments.Remove(col.gameObject);
-                else if (_ropeSegments.Count == 1)
-                    _moveTowardsCenter = _ropeSegments[0].gameObject;
+                _ropeSegments.Remove(col.gameObject);
             }
         }
 
