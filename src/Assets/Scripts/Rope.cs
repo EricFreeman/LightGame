@@ -40,12 +40,18 @@ namespace Assets.Scripts
                     hinge.connectedBody = section.rigidbody2D;
                     hinge.useLimits = true;
                     hinge.limits = new JointAngleLimits2D { min = 0, max = 0 };
-                }
+                };
 
                 section.transform.SetParent(transform);
                 section.transform.localPosition = Vector3.Lerp(StartPosition, EndPosition, Size * i);
                 _ropeSegments.Add(section);
             }
+        }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position + StartPosition, transform.position + EndPosition);
         }
     }
 }
