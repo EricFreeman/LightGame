@@ -15,7 +15,7 @@ namespace Assets.Scripts
         }
         private readonly List<GameObject> _ropeSegments = new List<GameObject>();
 
-        private GameObject _prevMiddle;
+        private GameObject _prevTop;
 
         private GameObject _moveTowardsCenter;
         private bool _centerPlayer;
@@ -28,37 +28,48 @@ namespace Assets.Scripts
 
                 // Jump off rope
                 if (IsOnRope && Input.GetKeyDown(KeyCode.Space))
+                {
                     Jump();
+                    return;
+                }
 
                 // Grab the middle rope segment player collides with since this would be closest to player's center
-                var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
-                GameObject middle = null;
-                if (all.Any()) middle = _ropeSegments[_ropeSegments.Count/2];
+                GameObject top = null;
 
-                if (middle != null)
+                if (Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0 || _prevTop == null)
+                {
+                    var all = _ropeSegments.OrderByDescending(x => x.transform.position.y);
+                    if (all.Any()) top = _ropeSegments[_ropeSegments.Count - 1];
+                }
+                else
+                {
+                    top = _prevTop;
+                }
+
+                if (top != null)
                 {
                     if (_centerPlayer)
                     {
-                        transform.position = new Vector3(middle.transform.position.x, transform.position.y,
+                        transform.position = new Vector3(top.transform.position.x, transform.position.y,
                             transform.position.z);
                         _centerPlayer = false;
                     }
 
                     // Climb rope
-                    rigidbody2D.velocity = middle.rigidbody2D.velocity + 
-                        (CanMoveUp(middle)
+                    rigidbody2D.velocity = top.rigidbody2D.velocity + 
+                        (CanMoveUp(top)
                             ? new Vector2(
-                                middle.transform.up.x*Input.GetAxisRaw("Vertical"),
-                                Input.GetAxisRaw("Vertical")*Speed*middle.transform.up.y)
+                                top.transform.up.x,
+                                Input.GetAxisRaw("Vertical")*Speed*top.transform.up.y)
                             : new Vector2(rigidbody2D.velocity.x, 0));
 
                     // Swing on rope
-                    middle.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal")*5, 0));
-                    transform.rotation = middle.transform.rotation;
+                    top.rigidbody2D.AddForce(new Vector2(Input.GetAxisRaw("Horizontal")*5, 0));
+                    transform.rotation = top.transform.rotation;
 
                     // Move player with swing of rope
-                    if (_prevMiddle == middle) transform.position = Vector3.MoveTowards(transform.position, middle.transform.position, .01f);
-                    _prevMiddle = middle;
+                    if (_prevTop == top) transform.position = Vector3.MoveTowards(transform.position, top.transform.position, .01f);
+                    _prevTop = top;
                 }
 
                 // Move towards middle of rope if you've somehow moved off of it
