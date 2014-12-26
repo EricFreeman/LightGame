@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts
 {
@@ -15,7 +16,8 @@ namespace Assets.Scripts
         {
             Sprite.transform.position -= new Vector3(0, Random.Range(0, MaxHeightLower), 0);
             var scale = Random.Range(MinScale, MaxScale);
-            transform.localScale = new Vector3(scale, scale, scale);
+            var isFlipped = Random.Range(0, 2) == 0 ? -1 : 1;
+            transform.localScale = new Vector3(scale * isFlipped, scale, scale);
         }
     }
 }
