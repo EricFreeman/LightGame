@@ -8,7 +8,7 @@ namespace Assets.Scripts
     public class Grass : MonoBehaviour
     {
         public float Length;
-        public List<GameObject> GameObjects;
+        public List<Foliage> GameObjects;
         public float Density;
 
         void Start()
@@ -19,7 +19,7 @@ namespace Assets.Scripts
             for (var i = 0; i < count; i++)
             {
                 var t = GameObjects.ToList()[rand.Next(0, GameObjects.Count())];
-                var obj = (GameObject) Instantiate(t);
+                var obj = (GameObject) Instantiate(t.gameObject);
                 obj.transform.position = transform.position + new Vector3(i/Density, 0, 0);
                 obj.transform.parent = transform;
             }
