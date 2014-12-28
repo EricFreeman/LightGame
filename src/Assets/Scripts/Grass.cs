@@ -20,8 +20,8 @@ namespace Assets.Scripts
             {
                 var t = GameObjects.ToList()[rand.Next(0, GameObjects.Count())];
                 var obj = (GameObject) Instantiate(t.gameObject);
-                obj.transform.position = transform.position + new Vector3(i/Density, 0, 0);
                 obj.transform.parent = transform;
+                obj.GetComponent<Foliage>().Place(transform.position, transform.position + new Vector3(Length, 0, 0));
             }
         }
 

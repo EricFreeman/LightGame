@@ -19,5 +19,10 @@ namespace Assets.Scripts
             var isFlipped = Random.Range(0, 2) == 0 ? -1 : 1;
             transform.localScale = new Vector3(scale * isFlipped, scale, scale);
         }
+
+        public void Place(Vector3 startPosition, Vector3 endPosition)
+        {
+            transform.position = Vector3.MoveTowards(startPosition, endPosition, Random.Range(0f, Vector3.Distance(startPosition, endPosition)));
+        }
     }
 }
