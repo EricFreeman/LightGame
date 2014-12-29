@@ -22,7 +22,23 @@ namespace Assets.Scripts
 
         public void Place(Vector3 startPosition, Vector3 endPosition)
         {
-            transform.position = Vector3.MoveTowards(startPosition, endPosition, Random.Range(0f, Vector3.Distance(startPosition, endPosition)));
+            do
+            {
+                transform.position = Vector3.MoveTowards(startPosition, endPosition, 
+                    Random.Range(0f, Vector3.Distance(startPosition, endPosition)));
+            } while (!IsWithinBounds(startPosition, endPosition));
+        }
+
+        private bool IsWithinBounds(Vector3 startPosition, Vector3 endPosition)
+        {
+            var isWithinBounds = true;
+
+            var width = Sprite.renderer.bounds.extents.x;
+
+            if ((transform.position - new Vector3(width, 0, 0)).x < startPosition.x || (transform.position + new Vector3(width, 0, 0)).x > endPosition.x)
+                isWithinBounds = false;
+
+            return isWithinBounds;
         }
     }
 }
